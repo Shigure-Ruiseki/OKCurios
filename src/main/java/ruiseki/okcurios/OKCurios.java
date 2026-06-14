@@ -1,4 +1,4 @@
-package ruiseki.okbase;
+package ruiseki.okcurios;
 
 import java.util.Map;
 
@@ -8,7 +8,6 @@ import net.minecraft.creativetab.CreativeTabs;
 import org.apache.logging.log4j.Level;
 
 import com.google.common.collect.Maps;
-import com.gtnewhorizon.gtnhlib.client.model.loading.ModelRegistry;
 import com.gtnewhorizon.gtnhlib.config.ConfigException;
 
 import cpw.mods.fml.common.Mod;
@@ -20,14 +19,10 @@ import cpw.mods.fml.common.event.FMLServerStartedEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import cpw.mods.fml.common.event.FMLServerStoppedEvent;
 import cpw.mods.fml.common.event.FMLServerStoppingEvent;
-import ruiseki.okbase.common.init.ModBlocks;
-import ruiseki.okbase.common.init.ModItems;
-import ruiseki.okbase.common.init.ModRecipes;
-import ruiseki.okbase.config.ModConfig;
 import ruiseki.okcore.command.CommandMod;
-import ruiseki.okcore.helper.MinecraftHelpers;
 import ruiseki.okcore.init.ModBase;
 import ruiseki.okcore.proxy.ICommonProxy;
+import ruiseki.okcurios.config.ModConfig;
 
 @Mod(
     modid = Reference.MOD_ID,
@@ -35,7 +30,7 @@ import ruiseki.okcore.proxy.ICommonProxy;
     version = Reference.VERSION,
     dependencies = Reference.DEPENDENCIES,
     guiFactory = Reference.GUI_FACTORY)
-public class OKBase extends ModBase {
+public class OKCurios extends ModBase {
 
     static {
         try {
@@ -49,23 +44,17 @@ public class OKBase extends ModBase {
     public static ICommonProxy proxy;
 
     @Mod.Instance(Reference.MOD_ID)
-    public static OKBase instance;
+    public static OKCurios instance;
 
-    public OKBase() {
+    public OKCurios() {
         super(Reference.MOD_ID, Reference.MOD_NAME);
         putGenericReference(REFKEY_MOD_VERSION, Reference.VERSION);
-        addInitListeners(new ModRecipes());
     }
 
     @Override
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         super.preInit(event);
-        ModBlocks.preInit();
-        ModItems.preInit();
-        if (MinecraftHelpers.isClientSide()) {
-            ModelRegistry.registerModid(Reference.MOD_ID);
-        }
     }
 
     @Override
@@ -128,7 +117,7 @@ public class OKBase extends ModBase {
      * @param message The message to show.
      */
     public static void okLog(String message) {
-        OKBase.instance.log(Level.INFO, message);
+        OKCurios.instance.log(Level.INFO, message);
     }
 
     /**
@@ -138,6 +127,6 @@ public class OKBase extends ModBase {
      * @param message The message to show.
      */
     public static void okLog(Level level, String message) {
-        OKBase.instance.log(level, message);
+        OKCurios.instance.log(level, message);
     }
 }

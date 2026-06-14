@@ -1,4 +1,4 @@
-package ruiseki.okbase;
+package ruiseki.okcurios;
 
 public class Reference {
 

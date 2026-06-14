@@ -1,4 +1,4 @@
-package ruiseki.okbase;
+package ruiseki.okcurios;
 
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.init.Items;
