@@ -30,7 +30,7 @@ public interface IDynamicStackHandler extends IItemHandlerModifiable, INBTSerial
      * @param slot  The slot index
      * @param stack The {@link ItemStack} to assign as the current stack
      */
-    void setStackInSlot(int slot, @NotNull ItemStack stack);
+    void setStackInSlot(int slot, ItemStack stack);
 
     /**
      * Gets the {@link ItemStack} assigned as the current stack in the given slot index
@@ -38,7 +38,6 @@ public interface IDynamicStackHandler extends IItemHandlerModifiable, INBTSerial
      * @param slot The slot index
      * @return The {@link ItemStack} assigned as the current stack
      */
-    @NotNull
     ItemStack getStackInSlot(int slot);
 
     /**

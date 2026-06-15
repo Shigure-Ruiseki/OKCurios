@@ -19,9 +19,19 @@ import cpw.mods.fml.common.event.FMLServerStartedEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import cpw.mods.fml.common.event.FMLServerStoppedEvent;
 import cpw.mods.fml.common.event.FMLServerStoppingEvent;
+import cpw.mods.fml.common.network.NetworkRegistry;
 import ruiseki.okcore.command.CommandMod;
+import ruiseki.okcore.helper.MinecraftHelpers;
 import ruiseki.okcore.init.ModBase;
 import ruiseki.okcore.proxy.ICommonProxy;
+import ruiseki.okcurios.api.CuriosApi;
+import ruiseki.okcurios.client.IconHelper;
+import ruiseki.okcurios.common.CuriosHelper;
+import ruiseki.okcurios.common.SlotHelper;
+import ruiseki.okcurios.common.capability.CurioInventoryCapability;
+import ruiseki.okcurios.common.capability.CurioItemCapability;
+import ruiseki.okcurios.common.inventory.container.CuriosGuiHandler;
+import ruiseki.okcurios.common.slottype.SlotTypeManager;
 import ruiseki.okcurios.config.ModConfig;
 
 @Mod(
@@ -49,12 +59,20 @@ public class OKCurios extends ModBase {
     public OKCurios() {
         super(Reference.MOD_ID, Reference.MOD_NAME);
         putGenericReference(REFKEY_MOD_VERSION, Reference.VERSION);
+
+        addInitListeners(new CurioInventoryCapability());
+        addInitListeners(new CurioItemCapability());
     }
 
     @Override
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         super.preInit(event);
+        CuriosApi.setCuriosHelper(new CuriosHelper());
+
+        if (MinecraftHelpers.isClientSide()) {
+            CuriosApi.setIconHelper(new IconHelper());
+        }
     }
 
     @Override
@@ -69,6 +87,7 @@ public class OKCurios extends ModBase {
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
         super.init(event);
+        NetworkRegistry.INSTANCE.registerGuiHandler(this, new CuriosGuiHandler());
     }
 
     @Override
@@ -81,6 +100,8 @@ public class OKCurios extends ModBase {
     @Mod.EventHandler
     public void onServerStarting(FMLServerStartingEvent event) {
         super.onServerStarting(event);
+        CuriosApi.setSlotHelper(new SlotHelper());
+        SlotTypeManager.buildSlotTypes();
     }
 
     @Override

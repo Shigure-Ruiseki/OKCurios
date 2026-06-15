@@ -143,10 +143,8 @@ public interface ICuriosItemHandler extends INBTSerializable {
 
     /**
      * Sets the total Fortune and Looting bonuses associated with the handler.
-     *
-     * @param fortuneAndLooting An array where [0] is Fortune bonus and [1] is Looting bonus
      */
-    void setEnchantmentBonuses(int[] fortuneAndLooting);
+    void setEnchantmentBonuses(int fortune, int looting);
 
     /**
      * Retrieves a set containing the ICurioStacksHandler that require its slot modifiers be

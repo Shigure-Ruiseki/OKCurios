@@ -25,10 +25,10 @@ import ruiseki.okcurios.api.type.capability.ICuriosItemHandler;
 public class CuriosCapability {
 
     @CapabilityInject(ICuriosItemHandler.class)
-    public static final Capability<ICuriosItemHandler> INVENTORY = null;
+    public static Capability<ICuriosItemHandler> INVENTORY = null;
 
     @CapabilityInject(ICurio.class)
-    public static final Capability<ICurio> ITEM = null;
+    public static Capability<ICurio> ITEM = null;
 
     public static final ResourceLocation ID_INVENTORY = new ResourceLocation(Reference.MOD_ID, "inventory");
     public static final ResourceLocation ID_ITEM = new ResourceLocation(Reference.MOD_ID, "item");

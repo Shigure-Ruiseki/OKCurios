@@ -17,21 +17,22 @@ package ruiseki.okcurios.api.type.helper;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Predicate;
 
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.ai.attributes.IAttribute;
-import net.minecraft.inventory.IInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.Multimap;
 
+import ruiseki.okcore.item.IItemHandlerModifiable;
 import ruiseki.okcurios.api.SlotContext;
 import ruiseki.okcurios.api.SlotResult;
 import ruiseki.okcurios.api.type.capability.ICurio;
 import ruiseki.okcurios.api.type.capability.ICuriosItemHandler;
+import ruiseki.okcurios.common.CuriosHelper;
 
 public interface ICuriosHelper {
 
@@ -60,12 +61,12 @@ public interface ICuriosHelper {
     Set<String> getCurioTags(Item item);
 
     /**
-     * Gets an IInventory that contains all the equipped curio stacks (not including cosmetics).
+     * Gets an IItemHandlerModifiable that contains all the equipped curio stacks (not including cosmetics).
      *
      * @param livingEntity The wearer of the curios
      * @return The equipped curio stacks inventory, or null if there is no curios handler
      */
-    IInventory getEquippedCurios(EntityLivingBase livingEntity);
+    IItemHandlerModifiable getEquippedCurios(EntityLivingBase livingEntity);
 
     /**
      * Replaces the currently equipped item in a specified curio slot, if it exists.
@@ -146,7 +147,7 @@ public interface ICuriosHelper {
      * Adds a slot modifier to a specified attribute map.
      */
     void addSlotModifier(Multimap<IAttribute, AttributeModifier> map, String identifier, UUID uuid, double amount,
-        int operation); // 1.7.10 dùng giá trị int (0, 1, 2) cho Operation của Attribute
+        int operation);
 
     /**
      * Adds a slot modifier to an ItemStack's tag data.
@@ -177,4 +178,14 @@ public interface ICuriosHelper {
      * @param damager The entity that is breaking the item
      */
     void onBrokenCurio(String id, int index, EntityLivingBase damager);
+
+    /**
+     * Sets the {@link CuriosHelper.CurioBrokenConsumer} that should be used with
+     * {@link ItemStack#damageItem(int, EntityLivingBase)} when triggering break animations in curio slots
+     *
+     * @param consumer The {@link CuriosHelper.CurioBrokenConsumer} taking an
+     *                 {@link ruiseki.okcurios.api.type.ISlotType}
+     *                 identifier, a slot index, and the wearer as a {@link EntityLivingBase}
+     */
+    void setBrokenCurioConsumer(CuriosHelper.CurioBrokenConsumer consumer);
 }
