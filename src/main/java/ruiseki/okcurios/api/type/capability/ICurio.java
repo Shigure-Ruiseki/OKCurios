@@ -32,6 +32,7 @@ import net.minecraft.util.Vec3;
 
 import org.lwjgl.opengl.GL11;
 
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
 import ruiseki.okcore.persist.nbt.INBTSerializable;
@@ -109,7 +110,7 @@ public interface ICurio extends INBTSerializable {
     }
 
     default Multimap<IAttribute, AttributeModifier> getAttributeModifiers(SlotContext slotContext, UUID uuid) {
-        return null;
+        return HashMultimap.create();
     }
 
     default void onEquipFromUse(SlotContext slotContext) {

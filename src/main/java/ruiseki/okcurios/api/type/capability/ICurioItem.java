@@ -1,17 +1,3 @@
-/*
- * Copyright (c) 2018-2020 C4
- * This file is part of Curios, a mod made for Minecraft.
- * Curios is free software: you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as published
- * by the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * Curios is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR PARTICULAR PURPOSE. See the
- * GNU Lesser General Public License for more details.
- * You should have received a copy of the GNU Lesser General Public
- * License along with Curios. If not, see <https://www.gnu.org/licenses/>.
- */
 package ruiseki.okcurios.api.type.capability;
 
 import java.util.List;
@@ -26,6 +12,9 @@ import net.minecraft.nbt.NBTTagCompound;
 
 import com.google.common.collect.Multimap;
 
+import baubles.api.BaubleType;
+import baubles.api.expanded.IBaubleExpanded;
+import cpw.mods.fml.common.Optional;
 import ruiseki.okcore.persist.nbt.INBTSerializable;
 import ruiseki.okcurios.api.SlotContext;
 
@@ -37,7 +26,8 @@ import ruiseki.okcurios.api.SlotContext;
  *
  * @author Extegral
  */
-public interface ICurioItem extends INBTSerializable {
+@Optional.Interface(iface = "baubles.api.IBaubleExpanded", modid = "Baubles")
+public interface ICurioItem extends INBTSerializable, IBaubleExpanded {
 
     /**
      * Default instance of {@link ICurio}, where all calls are redirected by default methods
@@ -49,9 +39,6 @@ public interface ICurioItem extends INBTSerializable {
 
     /**
      * Called during automatic capability attachment to any ItemStack containing this {@link ICurioItem} instance.
-     *
-     * @param stack ItemStack in question
-     * @return true to allow attach {@link ICurio} capability to this ItemStack; false to prevent attachment.
      */
     default boolean hasCurioCapability(ItemStack stack) {
         return true;
@@ -200,7 +187,6 @@ public interface ICurioItem extends INBTSerializable {
 
     /**
      * Performs rendering of the ItemStack if canRender returns true.
-     * (Đã loại bỏ MatrixStack và IRenderTypeBuffer theo chuẩn Render 1.7.10)
      */
     default void render(String identifier, int index, EntityLivingBase livingEntity, float limbSwing,
         float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch,
@@ -215,5 +201,70 @@ public interface ICurioItem extends INBTSerializable {
             ageInTicks,
             netHeadYaw,
             headPitch);
+    }
+
+    /**
+     * BAUBLES EXPANDED COMPATIBILITY
+     */
+    @Override
+    default String[] getBaubleTypes(ItemStack itemstack) {
+        return new String[] { "ring" };
+    }
+
+    @Override
+    @Optional.Method(modid = "Baubles")
+    default BaubleType getBaubleType(ItemStack itemstack) {
+        String[] types = getBaubleTypes(itemstack);
+        if (types != null && types.length > 0) {
+            String primaryType = types[0];
+            if ("amulet".equals(primaryType)) return BaubleType.AMULET;
+            if ("belt".equals(primaryType)) return BaubleType.BELT;
+        }
+        return BaubleType.RING;
+    }
+
+    @Override
+    @Optional.Method(modid = "Baubles")
+    default void onWornTick(ItemStack itemstack, EntityLivingBase player) {
+        String[] types = getBaubleTypes(itemstack);
+        String identifier = (types != null && types.length > 0) ? types[0] : "ring";
+
+        this.curioTick(identifier, 0, player, itemstack);
+
+        if (player.worldObj.isRemote) {
+            this.curioAnimate(identifier, 0, player, itemstack);
+        }
+    }
+
+    @Override
+    @Optional.Method(modid = "Baubles")
+    default void onEquipped(ItemStack itemstack, EntityLivingBase player) {
+        String[] types = getBaubleTypes(itemstack);
+        String identifier = (types != null && types.length > 0) ? types[0] : "ring";
+        this.onEquip(new SlotContext(identifier, player, 0), null, itemstack);
+    }
+
+    @Override
+    @Optional.Method(modid = "Baubles")
+    default void onUnequipped(ItemStack itemstack, EntityLivingBase player) {
+        String[] types = getBaubleTypes(itemstack);
+        String identifier = (types != null && types.length > 0) ? types[0] : "ring";
+        this.onUnequip(new SlotContext(identifier, player, 0), null, itemstack);
+    }
+
+    @Override
+    @Optional.Method(modid = "Baubles")
+    default boolean canEquip(ItemStack itemstack, EntityLivingBase player) {
+        String[] types = getBaubleTypes(itemstack);
+        String identifier = (types != null && types.length > 0) ? types[0] : "ring";
+        return this.canEquip(identifier, player, itemstack);
+    }
+
+    @Override
+    @Optional.Method(modid = "Baubles")
+    default boolean canUnequip(ItemStack itemstack, EntityLivingBase player) {
+        String[] types = getBaubleTypes(itemstack);
+        String identifier = (types != null && types.length > 0) ? types[0] : "ring";
+        return this.canUnequip(identifier, player, itemstack);
     }
 }

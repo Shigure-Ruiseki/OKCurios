@@ -36,12 +36,13 @@ import com.cleanroommc.modularui.utils.item.ItemHandlerHelper;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
+import baubles.api.IBauble;
 import cpw.mods.fml.common.eventhandler.Event;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.network.NetworkRegistry;
-import ruiseki.okcore.event.AttachCapabilitiesEvent;
+import ruiseki.okcore.event.capabilities.AttachCapabilitiesEvent;
 import ruiseki.okcurios.OKCurios;
 import ruiseki.okcurios.api.CuriosApi;
 import ruiseki.okcurios.api.CuriosCapability;
@@ -66,6 +67,7 @@ import ruiseki.okcurios.common.network.PacketSetIcons;
 import ruiseki.okcurios.common.network.sync.PacketSyncCurios;
 import ruiseki.okcurios.common.network.sync.PacketSyncModifiers;
 import ruiseki.okcurios.common.network.sync.PacketSyncStack;
+import ruiseki.okcurios.compat.BaubleToCurioCapabilityWrapper;
 
 public class CuriosEventHandler {
 
@@ -133,10 +135,8 @@ public class CuriosEventHandler {
 
     @SubscribeEvent
     public void attachEntitiesCapabilities(AttachCapabilitiesEvent<Entity> evt) {
-        if (evt.getType() == Entity.class) {
-            if (evt.getObject() instanceof EntityPlayer entityPlayer) {
-                evt.addCapability(CuriosCapability.ID_INVENTORY, CurioInventoryCapability.createProvider(entityPlayer));
-            }
+        if (evt.getObject() instanceof EntityPlayer entityPlayer) {
+            evt.addCapability(CuriosCapability.ID_INVENTORY, CurioInventoryCapability.createProvider(entityPlayer));
         }
     }
 
@@ -145,14 +145,17 @@ public class CuriosEventHandler {
      */
     @SubscribeEvent
     public void attachStackCapabilities(AttachCapabilitiesEvent<ItemStack> evt) {
-        if (evt.getType() == ItemStack.class) {
-            ItemStack stack = (ItemStack) evt.getObject();
-            if (stack.getItem() instanceof ICurioItem curioItem) {
-                if (curioItem.hasCurioCapability(stack)) {
-                    ItemizedCurioCapability itemizedCapability = new ItemizedCurioCapability(curioItem, stack);
-                    evt.addCapability(CuriosCapability.ID_ITEM, CurioItemCapability.createProvider(itemizedCapability));
-                }
+        ItemStack stack = evt.getObject();
+        if (stack == null || stack.getItem() == null) return;
+
+        if (stack.getItem() instanceof ICurioItem curioItem) {
+            if (curioItem.hasCurioCapability(stack)) {
+                ItemizedCurioCapability itemizedCapability = new ItemizedCurioCapability(curioItem, stack);
+                evt.addCapability(CuriosCapability.ID_ITEM, CurioItemCapability.createProvider(itemizedCapability));
             }
+        } else if (stack.getItem() instanceof IBauble bauble) {
+            BaubleToCurioCapabilityWrapper baubleWrapper = new BaubleToCurioCapabilityWrapper(stack, bauble);
+            evt.addCapability(CuriosCapability.ID_ITEM, CurioItemCapability.createProvider(baubleWrapper));
         }
     }
 
@@ -485,7 +488,7 @@ public class CuriosEventHandler {
                                     // livingEntity.getPosY(), livingEntity.getPosZ());
                                 }
                             }
-                            stackHandler.setPreviousStackInSlot(i, stack.copy());
+                            stackHandler.setPreviousStackInSlot(i, stack != null ? stack.copy() : null);
                         }
 
                         ItemStack cosmeticStack = cosmeticStackHandler.getStackInSlot(i);
@@ -528,7 +531,6 @@ public class CuriosEventHandler {
                                 livingEntity.posZ,
                                 64.0D));
 
-                    // Gửi riêng cho chính chủ nếu là Player
                     if (livingEntity instanceof EntityPlayerMP) {
                         OKCurios.instance.getPacketHandler()
                             .sendToPlayer(packet, (EntityPlayerMP) livingEntity);

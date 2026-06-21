@@ -45,9 +45,9 @@ public class CurioSlot extends SlotItemHandler {
         ResourceLocation customTexture = CuriosApi.getIconHelper()
             .getIcon(this.identifier);
         if (customTexture != null) {
-            this.setBackgroundIconTexture(customTexture);
+            this.setBackgroundTexture(customTexture);
         } else {
-            this.setBackgroundIconTexture(new ResourceLocation(Reference.MOD_ID, "item/empty_curio_slot"));
+            this.setBackgroundTexture(new ResourceLocation(Reference.MOD_ID, "textures/slot/empty_curios_slot.png"));
         }
     }
 

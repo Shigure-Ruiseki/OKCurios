@@ -139,7 +139,7 @@ public class CuriosScreen extends GuiContainer {
     @Override
     protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
         String titleStr = LangHelpers.localize("container.crafting");
-        this.fontRendererObj.drawString(titleStr, 97, 6, 4210752);
+        this.fontRendererObj.drawString(titleStr, 86, 16, 4210752);
     }
 
     @Override
@@ -188,7 +188,11 @@ public class CuriosScreen extends GuiContainer {
             if (slotCount <= 8) {
                 this.drawTexturedModalRect(i + xOffset, j + 4 + upperHeight, xTexOffset, 151, width, 7);
             } else {
+                int maxUpperHeight = 151;
+                this.drawTexturedModalRect(i + xOffset, j + 4 + maxUpperHeight, xTexOffset, 151, width, 7);
+
                 this.drawTexturedModalRect(i + xOffset - 16, j + 4, 27, 0, 23, 158);
+
                 this.mc.getTextureManager()
                     .bindTexture(CREATIVE_INVENTORY_TABS);
                 this.drawTexturedModalRect(i + xOffset - 8, j + 12 + (int) (127.0F * currentScroll), 232, 0, 12, 15);

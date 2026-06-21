@@ -25,7 +25,7 @@ public final class SlotType implements ISlotType {
         this.visible = builder.visible;
         this.cosmetic = builder.cosmetic;
         this.icon = builder.icon != null ? builder.icon
-            : new ResourceLocation(Reference.MOD_ID, "textures/gui/empty_curio_slot.png");
+            : new ResourceLocation(Reference.MOD_ID, "textures/slot/empty_curios_slot.png");
     }
 
     @Override

@@ -59,7 +59,7 @@ public class CurioItemCapability implements IInitListener {
         @SuppressWarnings("unchecked")
         @Override
         public @Nullable <T> T getCapability(@NotNull Capability<T> capability, ForgeDirection facing) {
-            return hasCapability(capability, facing) ? (T) capability : null;
+            return hasCapability(capability, facing) ? (T) this.capability : null;
         }
     }
 }

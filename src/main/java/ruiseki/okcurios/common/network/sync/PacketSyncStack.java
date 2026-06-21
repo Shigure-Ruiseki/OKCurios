@@ -36,7 +36,7 @@ public class PacketSyncStack extends PacketCodec {
         NBTTagCompound data) {
         this.entityId = entityId;
         this.slotId = slotId;
-        this.stack = stack.copy();
+        this.stack = (stack != null) ? stack.copy() : null;
         this.curioId = curioId;
         this.handlerType = handlerType.ordinal();
         this.compound = data;
@@ -61,10 +61,12 @@ public class PacketSyncStack extends PacketCodec {
                         NBTTagCompound compound = this.compound;
                         int slot = this.slotId;
 
-                        if (stack.hasTagCompound()) {
+                        if (stack != null && stack.hasTagCompound() && compound != null) {
                             ICurio curio = CuriosApi.getCuriosHelper()
                                 .getCurio(stack);
-                            curio.deserializeNBT(compound);
+                            if (curio != null) {
+                                curio.deserializeNBT(compound);
+                            }
                         }
 
                         if (HandlerType.fromValue(handlerType) == HandlerType.COSMETIC) {

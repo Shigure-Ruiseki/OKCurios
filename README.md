@@ -3,6 +3,6 @@
 
 *   [ModularUI2 (>= 2.3.73)](https://github.com/GTNewHorizons/ModularUI2)
 *   [GTNHLib (>= 0.11.9)](https://github.com/GTNewHorizons/GTNHLib)
-*   [OKCore (>= 26.06.15.0)](https://github.com/Shigure-Ruiseki/OKCore)
+*   [OKCore (>= 26.06.21.0)](https://github.com/Shigure-Ruiseki/OKCore)
 
 ## Features:
