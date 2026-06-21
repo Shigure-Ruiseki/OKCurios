@@ -36,7 +36,6 @@ import ruiseki.okcurios.api.CuriosApi;
 import ruiseki.okcurios.api.CuriosCapability;
 import ruiseki.okcurios.api.SlotContext;
 import ruiseki.okcurios.api.SlotResult;
-import ruiseki.okcurios.api.SlotTypePreset;
 import ruiseki.okcurios.api.type.capability.ICurio;
 import ruiseki.okcurios.api.type.capability.ICuriosItemHandler;
 import ruiseki.okcurios.api.type.helper.ICuriosHelper;
@@ -324,8 +323,7 @@ public class CuriosHelper implements ICuriosHelper {
         if (stack == null) return false;
         String id = slotContext.id();
         Set<String> tags = getCurioTags(stack.getItem());
-        return (!tags.isEmpty() && id.equals(SlotTypePreset.CURIO.getIdentifier())) || tags.contains(id)
-            || tags.contains(SlotTypePreset.CURIO.getIdentifier());
+        return tags.contains(id);
     }
 
     @Override
