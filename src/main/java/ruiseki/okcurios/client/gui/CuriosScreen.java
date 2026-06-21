@@ -162,13 +162,9 @@ public class CuriosScreen extends GuiContainer {
 
         CuriosContainer container = (CuriosContainer) this.inventorySlots;
 
-        if (container.curiosHandler == null) {
-            System.out.println("[DEBUG] CuriosHandler is NULL! Slot rendering aborted.");
-            return;
-        }
+        if (container.curiosHandler == null) return;
 
         int slotCount = container.curiosHandler.getVisibleSlots();
-        System.out.println("[DEBUG] Visible Curios Slots: " + slotCount);
 
         if (slotCount > 0) {
             this.mc.getTextureManager()

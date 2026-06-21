@@ -36,11 +36,6 @@ public class CuriosButton extends GuiButton {
     public void drawButton(Minecraft mc, int mouseX, int mouseY) {
         if (this.visible) {
             boolean isCreative = parentGui instanceof GuiContainerCreative;
-            int xOffset = 0;
-            int yOffset = isCreative ? 68 : 83;
-
-            this.xPosition = parentGui.guiLeft + xOffset;
-            this.yPosition = parentGui.guiTop + yOffset;
 
             if (isCreative) {
                 GuiContainerCreative creativeGui = (GuiContainerCreative) parentGui;

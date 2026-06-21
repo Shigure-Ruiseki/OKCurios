@@ -3,7 +3,9 @@ package ruiseki.okcurios.client.gui;
 import java.lang.reflect.Method;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.gui.inventory.GuiContainerCreative;
 import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraftforge.client.event.GuiScreenEvent;
@@ -16,6 +18,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 public class GuiEventHandler {
 
     private static final int CURIOS_BUTTON_ID = 157;
+    private static final int BAUBLES_BUTTON_ID = 55;
     private static Method isNEIHiddenMethod;
 
     @SuppressWarnings("unchecked")
@@ -25,6 +28,9 @@ public class GuiEventHandler {
 
         if (screen instanceof GuiInventory || screen instanceof GuiContainerCreative
             || screen instanceof CuriosScreen) {
+            evt.buttonList
+                .removeIf(button -> button instanceof GuiButton guiButton && guiButton.id == BAUBLES_BUTTON_ID);
+
             boolean isCreative = screen instanceof GuiContainerCreative;
 
             int xSize = 176;
@@ -41,12 +47,12 @@ public class GuiEventHandler {
             int size = isCreative ? 10 : 14;
             int textureOffsetX = isCreative ? 64 : 50;
 
-            int buttonX = guiLeft + (isCreative ? 26 : 80);
-            int buttonY = guiTop + (isCreative ? 68 : 83);
+            int buttonX = guiLeft + 26;
+            int buttonY = guiTop + 9;
 
             CuriosButton curiosButton = new CuriosButton(
                 CURIOS_BUTTON_ID,
-                (net.minecraft.client.gui.inventory.GuiContainer) screen,
+                (GuiContainer) screen,
                 buttonX,
                 buttonY,
                 size,

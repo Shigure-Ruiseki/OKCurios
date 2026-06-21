@@ -150,4 +150,8 @@ public class OKCurios extends ModBase {
     public static void okLog(Level level, String message) {
         OKCurios.instance.log(level, message);
     }
+
+    public static void okLog(Level level, String message, Object... params) {
+        OKCurios.instance.log(level, message, params);
+    }
 }
