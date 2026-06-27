@@ -13,8 +13,8 @@ import org.lwjgl.opengl.GL11;
 
 import ruiseki.okcurios.OKCurios;
 import ruiseki.okcurios.common.inventory.container.CuriosGuiHandler;
-import ruiseki.okcurios.common.network.PacketOpenCurios;
-import ruiseki.okcurios.common.network.PacketOpenVanilla;
+import ruiseki.okcurios.common.network.client.CPacketOpenCurios;
+import ruiseki.okcurios.common.network.client.CPacketOpenVanilla;
 
 public class CuriosButton extends GuiButton {
 
@@ -78,7 +78,7 @@ public class CuriosButton extends GuiButton {
             mc.thePlayer.inventory.setItemStack(mouseStack);
 
             OKCurios.instance.getPacketHandler()
-                .sendToServer(new PacketOpenVanilla());
+                .sendToServer(new CPacketOpenVanilla());
 
         } else if (parentGui instanceof GuiInventory || parentGui instanceof GuiContainerCreative) {
             mc.thePlayer.inventory.setItemStack(null);
@@ -94,7 +94,7 @@ public class CuriosButton extends GuiButton {
             mc.thePlayer.inventory.setItemStack(mouseStack);
 
             OKCurios.instance.getPacketHandler()
-                .sendToServer(new PacketOpenCurios());
+                .sendToServer(new CPacketOpenCurios());
         }
     }
 }

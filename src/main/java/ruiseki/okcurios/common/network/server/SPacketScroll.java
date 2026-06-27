@@ -1,7 +1,6 @@
-package ruiseki.okcurios.common.network;
+package ruiseki.okcurios.common.network.server;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
@@ -12,16 +11,16 @@ import ruiseki.okcore.network.PacketCodec;
 import ruiseki.okcurios.client.gui.CuriosScreen;
 import ruiseki.okcurios.common.inventory.container.CuriosContainer;
 
-public class PacketScroll extends PacketCodec {
+public class SPacketScroll extends PacketCodec {
 
     @CodecField
     private int windowId = -1;
     @CodecField
     private int index = -1;
 
-    public PacketScroll() {}
+    public SPacketScroll() {}
 
-    public PacketScroll(final int windowId, final int index) {
+    public SPacketScroll(final int windowId, final int index) {
         this.windowId = windowId;
         this.index = index;
     }
@@ -33,28 +32,22 @@ public class PacketScroll extends PacketCodec {
 
     @Override
     public void actionClient(World world, EntityPlayer player) {
-        Minecraft mc = Minecraft.getMinecraft();
         if (world != null) {
+            Minecraft mc = Minecraft.getMinecraft();
             if (player != null) {
                 Container container = player.openContainer;
-                if (container instanceof CuriosContainer && container.windowId == this.windowId) {
-                    ((CuriosContainer) container).scrollToIndex(this.index);
+                if (container instanceof CuriosContainer curiosContainer && container.windowId == this.windowId) {
+                    curiosContainer.scrollToIndex(this.index);
                 }
             }
-            GuiScreen screen = mc.currentScreen;
-            if (screen instanceof CuriosScreen) {
-                ((CuriosScreen) screen).updateRenderButtons();
+            if (mc.currentScreen instanceof CuriosScreen curiosScreen) {
+                curiosScreen.updateRenderButtons();
             }
         }
     }
 
     @Override
     public void actionServer(World world, EntityPlayerMP player) {
-        if (player != null) {
-            Container container = player.openContainer;
-            if (container instanceof CuriosContainer && container.windowId == this.windowId) {
-                ((CuriosContainer) container).scrollToIndex(this.index);
-            }
-        }
+
     }
 }

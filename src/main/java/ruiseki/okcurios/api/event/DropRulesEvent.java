@@ -32,9 +32,9 @@ import ruiseki.okcurios.api.type.capability.ICurio.DropRule;
 import ruiseki.okcurios.api.type.capability.ICuriosItemHandler;
 
 /**
- * DropRulesEvent is fired when an Entity's death causes dropped curios to appear.<br>
+ * LivingCurioDropsEvent is fired when an Entity's death causes dropped curios to appear.<br>
  * This
- * event is fired whenever an Entity dies and drops items in {@link EntityLivingBase#onDeath(DamageSource)}.<br>
+ * event is fired whenever an Entity dies and drops items in {@link LivingEntity#die(DamageSource)}.<br>
  * <br>
  * This event is fired inside the {@link net.minecraftforge.event.entity.living.LivingDropsEvent}.<br>
  * <br>
@@ -43,10 +43,6 @@ import ruiseki.okcurios.api.type.capability.ICuriosItemHandler;
  * #lootingLevel} contains the amount of loot that will be dropped.<br>
  * {@link #recentlyHit}
  * determines whether the Entity doing the drop has recently been damaged.<br>
- * <br>
- * This event is not {@link cpw.mods.fml.common.eventhandler.Cancelable}.<br>
- * <br>
- * This event does not have a result. {@link HasResult}<br>
  * <br>
  * This event is fired on the {@link MinecraftForge#EVENT_BUS}.
  **/

@@ -17,7 +17,7 @@ import ruiseki.okcurios.Reference;
 import ruiseki.okcurios.common.inventory.CosmeticCurioSlot;
 import ruiseki.okcurios.common.inventory.CurioSlot;
 import ruiseki.okcurios.common.inventory.container.CuriosContainer;
-import ruiseki.okcurios.common.network.PacketScroll;
+import ruiseki.okcurios.common.network.server.SPacketScroll;
 
 public class CuriosScreen extends GuiContainer {
 
@@ -30,6 +30,7 @@ public class CuriosScreen extends GuiContainer {
         "textures/gui/container/creative_inventory/tabs.png");
 
     private static float currentScroll = 0.0F;
+
     public boolean hasScrollBar;
     private boolean isScrolling;
     private boolean isRenderButtonHovered;
@@ -50,10 +51,12 @@ public class CuriosScreen extends GuiContainer {
 
         CuriosContainer container = (CuriosContainer) this.inventorySlots;
         if (container.curiosHandler != null) {
-            this.hasScrollBar = container.curiosHandler.getVisibleSlots() > 8;
-            if (this.hasScrollBar) {
-                container.scrollTo(currentScroll);
-            }
+            container.curiosHandler.ifPresent(curios -> {
+                this.hasScrollBar = curios.getVisibleSlots() > 8;
+                if (this.hasScrollBar) {
+                    container.scrollToIndex((int) (currentScroll * (curios.getVisibleSlots() - 8) + 0.5D));
+                }
+            });
         }
 
         this.updateRenderButtons();
@@ -65,8 +68,8 @@ public class CuriosScreen extends GuiContainer {
         CuriosContainer container = (CuriosContainer) this.inventorySlots;
         int idCounter = 1;
 
-        for (Slot slot : container.inventorySlots) {
-
+        for (int i = 0; i < container.inventorySlots.size(); i++) {
+            Slot slot = (Slot) container.inventorySlots.get(i);
             if (slot instanceof CurioSlot && !(slot instanceof CosmeticCurioSlot)) {
                 int buttonX = this.guiLeft + slot.xDisplayPosition + 11;
                 int buttonY = this.guiTop + slot.yDisplayPosition - 3;
@@ -83,6 +86,8 @@ public class CuriosScreen extends GuiContainer {
     }
 
     private boolean inScrollBar(int mouseX, int mouseY) {
+        if (!this.hasScrollBar) return false;
+
         int k = this.guiLeft - 34;
         int l = this.guiTop + 12;
         int i1 = k + 14;
@@ -163,52 +168,58 @@ public class CuriosScreen extends GuiContainer {
         CuriosContainer container = (CuriosContainer) this.inventorySlots;
 
         if (container.curiosHandler == null) return;
+        container.curiosHandler.ifPresent(curios -> {
+            int slotCount = curios.getVisibleSlots();
 
-        int slotCount = container.curiosHandler.getVisibleSlots();
+            if (slotCount > 0) {
+                this.mc.getTextureManager()
+                    .bindTexture(CURIO_INVENTORY);
 
-        if (slotCount > 0) {
-            this.mc.getTextureManager()
-                .bindTexture(CURIO_INVENTORY);
+                int xOffset = -26;
+                int width = 27;
+                int xTexOffset = 0;
 
-            int xOffset = -26;
-            int width = 27;
-            int xTexOffset = 0;
+                if (container.hasCosmeticColumn()) {
+                    xTexOffset = 92;
+                    width = 46;
+                    xOffset -= 19;
+                }
 
-            if (container.hasCosmeticColumn()) {
-                xTexOffset = 92;
-                width = 46;
-                xOffset -= 19;
-            }
+                int renderCount = Math.min(slotCount, 8);
+                int upperHeight = 7 + renderCount * 18;
 
-            int renderCount = Math.min(slotCount, 8);
-            int upperHeight = 7 + renderCount * 18;
+                this.drawTexturedModalRect(i + xOffset, j + 4, xTexOffset, 0, width, upperHeight);
 
-            this.drawTexturedModalRect(i + xOffset, j + 4, xTexOffset, 0, width, upperHeight);
+                if (slotCount <= 8) {
+                    this.drawTexturedModalRect(i + xOffset, j + 4 + upperHeight, xTexOffset, 151, width, 7);
+                } else {
+                    this.drawTexturedModalRect(i + xOffset, j + 4 + 151, xTexOffset, 151, width, 7);
+                    this.drawTexturedModalRect(i + xOffset - 16, j + 4, 27, 0, 23, 158);
 
-            if (slotCount <= 8) {
-                this.drawTexturedModalRect(i + xOffset, j + 4 + upperHeight, xTexOffset, 151, width, 7);
-            } else {
-                int maxUpperHeight = 151;
-                this.drawTexturedModalRect(i + xOffset, j + 4 + maxUpperHeight, xTexOffset, 151, width, 7);
-
-                this.drawTexturedModalRect(i + xOffset - 16, j + 4, 27, 0, 23, 158);
+                    this.mc.getTextureManager()
+                        .bindTexture(CREATIVE_INVENTORY_TABS);
+                    this.drawTexturedModalRect(
+                        i + xOffset - 8,
+                        j + 12 + (int) (127.0F * currentScroll),
+                        232,
+                        0,
+                        12,
+                        15);
+                }
 
                 this.mc.getTextureManager()
-                    .bindTexture(CREATIVE_INVENTORY_TABS);
-                this.drawTexturedModalRect(i + xOffset - 8, j + 12 + (int) (127.0F * currentScroll), 232, 0, 12, 15);
-            }
+                    .bindTexture(CURIO_INVENTORY);
+                for (int s = 0; s < container.inventorySlots.size(); s++) {
+                    Slot slot = (Slot) container.inventorySlots.get(s);
 
-            this.mc.getTextureManager()
-                .bindTexture(CURIO_INVENTORY);
-            for (Slot slot : container.inventorySlots) {
-                if (slot instanceof CurioSlot || slot instanceof CosmeticCurioSlot) {
-                    int slotX = this.guiLeft + slot.xDisplayPosition - 1;
-                    int slotY = this.guiTop + slot.yDisplayPosition - 1;
-
-                    this.drawTexturedModalRect(slotX, slotY, 138, 0, 18, 18);
+                    if (slot instanceof CosmeticCurioSlot) {
+                        int slotX = this.guiLeft + slot.xDisplayPosition - 1;
+                        int slotY = this.guiTop + slot.yDisplayPosition - 1;
+                        this.drawTexturedModalRect(slotX, slotY, 138, 0, 18, 18);
+                    }
                 }
             }
-        }
+        });
     }
 
     @Override
@@ -237,10 +248,19 @@ public class CuriosScreen extends GuiContainer {
             currentScroll = MathHelper.clamp_float(currentScroll, 0.0F, 1.0F);
 
             CuriosContainer container = (CuriosContainer) this.inventorySlots;
-            container.scrollToIndex((int) (currentScroll * (container.curiosHandler.getVisibleSlots() - 8) + 0.5D));
+            int maxScrollSlots = container.curiosHandler.map(curios -> curios.getVisibleSlots() - 8)
+                .orElse(0);
+
+            int index = (int) (currentScroll * maxScrollSlots + 0.5D);
+            container.scrollToIndex(index);
+
+            if (maxScrollSlots > 0) {
+                currentScroll = (float) index / (float) maxScrollSlots;
+            }
 
             OKCurios.instance.getPacketHandler()
-                .sendToServer(new PacketScroll(container.windowId, container.lastScrollIndex));
+                .sendToServer(new SPacketScroll(container.windowId, container.lastScrollIndex));
+            this.updateRenderButtons();
             return;
         }
         super.mouseClickMove(mouseX, mouseY, clickedMouseButton, timeSinceLastClick);
@@ -253,13 +273,22 @@ public class CuriosScreen extends GuiContainer {
         if (wheel != 0) {
             CuriosContainer container = (CuriosContainer) this.inventorySlots;
             if (container.canScroll()) {
-                int slots = container.curiosHandler.getVisibleSlots();
+                int slots = container.curiosHandler.map(curios -> curios.getVisibleSlots())
+                    .orElse(8);
+                int maxScrollSlots = slots - 8;
+
                 currentScroll = (float) (currentScroll - (Integer.signum(wheel) / (float) slots));
                 currentScroll = MathHelper.clamp_float(currentScroll, 0.0F, 1.0F);
-                int index = (int) (currentScroll * (slots - 8) + 0.5D);
+
+                int index = (int) (currentScroll * maxScrollSlots + 0.5D);
                 container.scrollToIndex(index);
+
+                if (maxScrollSlots > 0) {
+                    currentScroll = (float) index / (float) maxScrollSlots;
+                }
+
                 OKCurios.instance.getPacketHandler()
-                    .sendToServer(new PacketScroll(container.windowId, index));
+                    .sendToServer(new SPacketScroll(container.windowId, index));
             }
         }
     }

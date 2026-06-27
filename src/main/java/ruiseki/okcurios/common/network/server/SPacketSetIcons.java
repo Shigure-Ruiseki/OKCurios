@@ -1,6 +1,5 @@
-package ruiseki.okcurios.common.network;
+package ruiseki.okcurios.common.network.server;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -14,17 +13,16 @@ import net.minecraft.world.World;
 import ruiseki.okcore.network.CodecField;
 import ruiseki.okcore.network.ExtendedBuffer;
 import ruiseki.okcore.network.PacketCodec;
-import ruiseki.okcurios.api.CuriosApi;
 
-public class PacketSetIcons extends PacketCodec {
+public class SPacketSetIcons extends PacketCodec {
 
     @CodecField
     private int entrySize = 0;
     private Map<String, ResourceLocation> map = new HashMap<>();
 
-    public PacketSetIcons() {}
+    public SPacketSetIcons() {}
 
-    public PacketSetIcons(Map<String, ResourceLocation> map) {
+    public SPacketSetIcons(Map<String, ResourceLocation> map) {
         this.map = map;
         this.entrySize = map.size();
     }
@@ -34,9 +32,7 @@ public class PacketSetIcons extends PacketCodec {
         super.encode(output);
         for (Map.Entry<String, ResourceLocation> entry : map.entrySet()) {
             output.writeString(entry.getKey());
-            try {
-                output.writeResourceLocation(entry.getValue());
-            } catch (IOException ignored) {}
+            output.writeResourceLocation(entry.getValue());
         }
     }
 
@@ -44,9 +40,7 @@ public class PacketSetIcons extends PacketCodec {
     public void decode(ExtendedBuffer input) {
         super.decode(input);
         for (int i = 0; i < entrySize; i++) {
-            try {
-                map.put(input.readString(), input.readResourceLocation());
-            } catch (IOException ignore) {}
+            map.put(input.readString(), input.readResourceLocation());
         }
     }
 
@@ -60,15 +54,17 @@ public class PacketSetIcons extends PacketCodec {
         Set<String> slotIds = new HashSet<>();
 
         if (world != null) {
-            CuriosApi.getIconHelper()
-                .clearIcons();
+            Map<String, ResourceLocation> icons = new HashMap<>();
 
-            for (Map.Entry<String, ResourceLocation> entry : map.entrySet()) {
-                CuriosApi.getIconHelper()
-                    .addIcon(entry.getKey(), entry.getValue());
+            for (Map.Entry<String, ResourceLocation> entry : this.map.entrySet()) {
+                icons.put(entry.getKey(), entry.getValue());
                 slotIds.add(entry.getKey());
             }
+            // TODO: Add Data Loader
+            // CuriosSlotManager.INSTANCE.setIcons(icons);
         }
+        // TODO: Add Command
+        // CurioArgumentType.slotIds = slotIds;
     }
 
     @Override

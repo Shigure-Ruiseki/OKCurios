@@ -1,7 +1,20 @@
+/*
+ * Copyright (c) 2018-2020 C4
+ * This file is part of Curios, a mod made for Minecraft.
+ * Curios is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * Curios is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with Curios. If not, see <https://www.gnu.org/licenses/>.
+ */
 package ruiseki.okcurios.api.type.inventory;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -9,23 +22,25 @@ import java.util.UUID;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.nbt.NBTTagCompound;
 
+import ruiseki.okcore.datastructure.NonNullList;
 import ruiseki.okcore.persist.nbt.INBTSerializable;
+import ruiseki.okcurios.api.type.capability.ICurio;
 
 public interface ICurioStacksHandler extends INBTSerializable {
 
     /**
-     * Gets the IDynamicStackHandler for the equipped curio stacks.
+     * Gets the {@link IDynamicStackHandler} for the equipped curio stacks.
      *
-     * @return The IDynamicStackHandler for the equipped curio stacks
+     * @return The {@link IDynamicStackHandler} for the equipped curio stacks
      */
     IDynamicStackHandler getStacks();
 
     /**
-     * Gets the IDynamicStackHandler for the equipped cosmetic curio stacks.
+     * Gets the {@link IDynamicStackHandler} for the equipped cosmetic curio stacks.
      * <br>
      * The size of this list should always match the sie of {@link ICurioStacksHandler#getStacks()}
      *
-     * @return The IDynamicStackHandler for the equipped cosmetic curio stacks
+     * @return The {@link IDynamicStackHandler} for the equipped cosmetic curio stacks
      */
     IDynamicStackHandler getCosmeticStacks();
 
@@ -37,7 +52,30 @@ public interface ICurioStacksHandler extends INBTSerializable {
      *
      * @return A list of boolean values for render states
      */
-    List<Boolean> getRenders();
+    NonNullList<Boolean> getRenders();
+
+    /**
+     * Gets whether this stack handler can toggle rendering its contents on an entity, which is stored in
+     * {@link ICurioStacksHandler#getRenders()}.
+     *
+     * @return True to allow render toggling, false otherwise
+     */
+    default boolean canToggleRendering() {
+        return true;
+    }
+
+    /**
+     * Gets the drop rule that determines behavior for the contents upon death.
+     * See {@link ICurio.DropRule} for possible values.
+     * <br>
+     * {@link ICurio.DropRule#DEFAULT} will defer to the drop behavior defined by the Curios
+     * configuration.
+     *
+     * @return The {@link ICurio.DropRule} to use for drop behavior
+     */
+    default ICurio.DropRule getDropRule() {
+        return ICurio.DropRule.DEFAULT;
+    }
 
     /**
      * Gets the number of slots for equipped curio stacks.
@@ -113,7 +151,7 @@ public interface ICurioStacksHandler extends INBTSerializable {
     /**
      * Retrieves all the slot modifiers for a given operation on the handler.
      *
-     * @param operation The operation of the modifiers (0, 1, or 2 in 1.7.10)
+     * @param operation The operation of the modifiers
      * @return A collection of {@link AttributeModifier}
      */
     Collection<AttributeModifier> getModifiersByOperation(int operation);
@@ -150,6 +188,9 @@ public interface ICurioStacksHandler extends INBTSerializable {
 
     /**
      * Removes the cached modifiers that appear upon deserialization of the handler.
+     * <br>
+     * Primarily for internal use, used as a workaround to avoid calculating slot stacks before slot
+     * modifiers are initially applied.
      */
     void clearCachedModifiers();
 

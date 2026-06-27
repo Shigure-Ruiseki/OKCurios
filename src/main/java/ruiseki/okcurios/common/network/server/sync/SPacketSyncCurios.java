@@ -1,4 +1,4 @@
-package ruiseki.okcurios.common.network.sync;
+package ruiseki.okcurios.common.network.server.sync;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -15,11 +15,11 @@ import ruiseki.okcore.network.CodecField;
 import ruiseki.okcore.network.ExtendedBuffer;
 import ruiseki.okcore.network.PacketCodec;
 import ruiseki.okcurios.api.CuriosApi;
-import ruiseki.okcurios.api.type.capability.ICuriosItemHandler;
 import ruiseki.okcurios.api.type.inventory.ICurioStacksHandler;
 import ruiseki.okcurios.common.inventory.CurioStacksHandler;
+import ruiseki.okcurios.common.inventory.container.CuriosContainer;
 
-public class PacketSyncCurios extends PacketCodec {
+public class SPacketSyncCurios extends PacketCodec {
 
     @CodecField
     private int entityId = -1;
@@ -27,9 +27,9 @@ public class PacketSyncCurios extends PacketCodec {
     private int entrySize = -1;
     private Map<String, NBTTagCompound> map = new LinkedHashMap<>();
 
-    public PacketSyncCurios() {}
+    public SPacketSyncCurios() {}
 
-    public PacketSyncCurios(int entityId, Map<String, ICurioStacksHandler> map) {
+    public SPacketSyncCurios(int entityId, Map<String, ICurioStacksHandler> map) {
         Map<String, NBTTagCompound> result = new LinkedHashMap<>();
 
         for (Map.Entry<String, ICurioStacksHandler> entry : map.entrySet()) {
@@ -43,7 +43,7 @@ public class PacketSyncCurios extends PacketCodec {
         this.map = result;
     }
 
-    public PacketSyncCurios(Map<String, NBTTagCompound> map, int entityId) {
+    public SPacketSyncCurios(Map<String, NBTTagCompound> map, int entityId) {
         this.entityId = entityId;
         this.entrySize = map.size();
         this.map = map;
@@ -81,21 +81,25 @@ public class PacketSyncCurios extends PacketCodec {
     public void actionClient(World world, EntityPlayer player) {
 
         if (world != null) {
-            Entity entity = world.getEntityByID(entityId);
+            Entity entity = world.getEntityByID(this.entityId);
 
             if (entity instanceof EntityLivingBase livingBase) {
-                ICuriosItemHandler handler = CuriosApi.getCuriosHelper()
-                    .getCuriosHandler(livingBase);
-                if (handler != null) {
-                    Map<String, ICurioStacksHandler> stacks = new LinkedHashMap<>();
+                CuriosApi.getCuriosInventory(livingBase)
+                    .ifPresent(handler -> {
+                        Map<String, ICurioStacksHandler> stacks = new LinkedHashMap<>();
 
-                    for (Map.Entry<String, NBTTagCompound> entry : this.map.entrySet()) {
-                        ICurioStacksHandler stacksHandler = new CurioStacksHandler(handler, entry.getKey());
-                        stacksHandler.applySyncTag(entry.getValue());
-                        stacks.put(entry.getKey(), stacksHandler);
-                    }
-                    handler.setCurios(stacks);
-                }
+                        for (Map.Entry<String, NBTTagCompound> entry : this.map.entrySet()) {
+                            ICurioStacksHandler stacksHandler = new CurioStacksHandler(handler, entry.getKey());
+                            stacksHandler.applySyncTag(entry.getValue());
+                            stacks.put(entry.getKey(), stacksHandler);
+                        }
+                        handler.setCurios(stacks);
+
+                        if (entity instanceof EntityPlayer entityPlayer
+                            && entityPlayer.openContainer instanceof CuriosContainer curiosContainer) {
+                            curiosContainer.resetSlots();
+                        }
+                    });
             }
         }
     }

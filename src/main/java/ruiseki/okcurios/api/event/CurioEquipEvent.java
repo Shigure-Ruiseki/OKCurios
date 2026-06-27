@@ -14,7 +14,6 @@
  */
 package ruiseki.okcurios.api.event;
 
-import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.event.entity.living.LivingEvent;
 
@@ -24,35 +23,51 @@ import ruiseki.okcurios.api.SlotContext;
 /**
  * CurioEquipEvent is fired when a curio item is about to be equipped and allows an event listener
  * to specify whether it should or not. <br>
- * This event is fired when ever the
- * {@link ruiseki.okcurios.api.type.capability.ICurio#canEquip(String, EntityLivingBase)}
+ * This event is fired when ever the {@link ruiseki.okcurios.api.type.capability.ICurio#canEquip(SlotContext)}
  * is checked. <br>
  * <br>
- * This event has a {@link HasResult result}:
+ * This event has a {@link Event.Result result}:
+ * <ul>
  * <li>{@link Result#ALLOW} means the curio item can be equipped.</li>
  * <li>{@link Result#DEFAULT} means the item tags and
- * {@link ruiseki.okcurios.api.type.capability.ICurio#canEquip(String, EntityLivingBase)}
+ * {@link ruiseki.okcurios.api.type.capability.ICurio#canEquip(SlotContext)}
  * determines the result.</li>
- * <li>{@link Result#DENY} means the curio item cannot be equipped.</li><br>
+ * <li>{@link Result#DENY} means the curio item cannot be equipped.</li>
+ * </ul>
+ * <br>
  * This event is fired on the {@link net.minecraftforge.common.MinecraftForge#EVENT_BUS}.
  */
-@Event.HasResult
 public class CurioEquipEvent extends LivingEvent {
 
     private final SlotContext slotContext;
     private final ItemStack stack;
+    private Event.Result result;
 
     public CurioEquipEvent(ItemStack stack, SlotContext slotContext) {
-        super(slotContext.wearer());
+        super(slotContext.entity());
         this.slotContext = slotContext;
         this.stack = stack;
+        this.result = Result.DEFAULT;
+    }
+
+    public Result getEquipResult() {
+        return this.result;
+    }
+
+    public void setEquipResult(Result result) {
+        this.result = result;
+    }
+
+    @Override
+    public void setResult(Result result) {
+        this.setEquipResult(result);
     }
 
     public SlotContext getSlotContext() {
-        return slotContext;
+        return this.slotContext;
     }
 
     public ItemStack getStack() {
-        return stack;
+        return this.stack;
     }
 }

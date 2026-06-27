@@ -14,24 +14,31 @@
  */
 package ruiseki.okcurios.api.type.capability;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 
 import com.google.common.collect.Multimap;
 
+import ruiseki.okcore.item.IItemHandlerModifiable;
 import ruiseki.okcore.persist.nbt.INBTSerializable;
+import ruiseki.okcurios.api.SlotResult;
+import ruiseki.okcurios.api.type.ISlotType;
 import ruiseki.okcurios.api.type.inventory.ICurioStacksHandler;
 
 public interface ICuriosItemHandler extends INBTSerializable {
 
     /**
-     * A map of the current curios, keyed by the slot type identifier.
+     * A map of the current curios, keyed by the {@link ISlotType} identifier.
      *
      * @return The current curios equipped
      */
@@ -45,22 +52,20 @@ public interface ICuriosItemHandler extends INBTSerializable {
     void setCurios(Map<String, ICurioStacksHandler> map);
 
     /**
-     * Gets the number of slots across all slot type identifiers.
+     * Gets the number of slots across all {@link ISlotType} identifiers.
      *
      * @return The number of slots
      */
     int getSlots();
 
+    /**
+     * Gets the number of visible slots across all {@link ISlotType} identifiers.
+     *
+     * @return The number of visible slots
+     */
     default int getVisibleSlots() {
         return this.getSlots();
     }
-
-    /**
-     * Gets the identifiers of slot types locked for this handler.
-     *
-     * @return A set of slot type identifiers
-     */
-    Set<String> getLockedSlots();
 
     /**
      * Resets the current curios map to default values.
@@ -68,30 +73,79 @@ public interface ICuriosItemHandler extends INBTSerializable {
     void reset();
 
     /**
-     * Gets the ICurioStacksHandler associated with the given identifier
-     * or null if it doesn't exist.
+     * Gets the Optional {@link ICurioStacksHandler} associated with the given {@link ISlotType}
+     * identifier or Optional.empty() if it doesn't exist.
      *
-     * @param identifier The identifier for the slot type
-     * @return The stack handler, or null if not found
+     * @param identifier The identifier for the {@link ISlotType}
+     * @return The stack handler
      */
-    ICurioStacksHandler getStacksHandler(String identifier);
+    Optional<ICurioStacksHandler> getStacksHandler(String identifier);
 
     /**
-     * Enables the slot type for a given identifier, adding the default settings to the curio map.
-     */
-    void unlockSlotType(String identifier, int amount, boolean visible, boolean cosmetic);
-
-    /**
-     * Disables the slot type for a given identifier, removing it from the curio map.
+     * Gets a {@link ruiseki.okcore.datastructure.LazyOptional} of an {@link IItemHandlerModifiable}
+     * that contains all the equipped curio stacks (not including cosmetics).
      *
-     * @param identifier The identifier for the slot type
+     * @return The equipped curio stacks, or empty if there is no curios handler
      */
-    void lockSlotType(String identifier);
+    IItemHandlerModifiable getEquippedCurios();
 
     /**
-     * Processes the lock/unlock slot states that are enqueued
+     * Replaces the currently equipped item in a specified curio slot, if it exists.
+     *
+     * @param identifier The identifier of the curio slot
+     * @param index      The index of the curio slot
+     * @param stack      The new stack to place into the slot
      */
-    void processSlots();
+    void setEquippedCurio(String identifier, int index, ItemStack stack);
+
+    /**
+     * Gets the first matching item equipped in a curio slot.
+     *
+     * @param item The item to search for
+     * @return An optional {@link SlotResult} with the found item, or empty if none were found
+     */
+    Optional<SlotResult> findFirstCurio(Item item);
+
+    /**
+     * Gets the first matching item equipped in a curio slot that matches the filter.
+     *
+     * @param filter The filter to test against
+     * @return An optional {@link SlotResult} with the found item, or empty if none were found
+     */
+    Optional<SlotResult> findFirstCurio(Predicate<ItemStack> filter);
+
+    /**
+     * Gets all matching items equipped in a curio slot.
+     *
+     * @param item The item to search for
+     * @return A list of matching results
+     */
+    List<SlotResult> findCurios(Item item);
+
+    /**
+     * Gets all matching items equipped in a curio slot that matches the filter.
+     *
+     * @param filter The filter to test against
+     * @return A list of matching results
+     */
+    List<SlotResult> findCurios(Predicate<ItemStack> filter);
+
+    /**
+     * Gets all items equipped in all curio slots with specific identifiers.
+     *
+     * @param identifiers The identifiers for the slot types
+     * @return A list of matching results
+     */
+    List<SlotResult> findCurios(String... identifiers);
+
+    /**
+     * Gets the currently equipped item in a specified curio slot, if it exists.
+     *
+     * @param identifier The identifier of the curio slot
+     * @param index      The index of the curio slot
+     * @return The equipped curio stack, or empty if there is none
+     */
+    Optional<SlotResult> findCurio(String identifier, int index);
 
     /**
      * Gets the wearer/owner of this handler instance.
@@ -114,17 +168,15 @@ public interface ICuriosItemHandler extends INBTSerializable {
      */
     void handleInvalidStacks();
 
-    /**
-     * Returns the total Fortune bonus of all equipped curios.
-     * Recalculated with each LivingUpdateEvent.
-     */
-    int getFortuneBonus();
-
-    /**
-     * Returns the total Looting bonus of all equipped curios.
-     * Recalculated with each LivingUpdateEvent.
-     */
-    int getLootingBonus();
+    // /**
+    // * Get the amount of Fortune levels that are provided by curios.
+    // */
+    // int getFortuneLevel(@Nullable LootContext lootContext);
+    //
+    // /**
+    // * Get the amount of Looting levels that are provided by curios.
+    // */
+    // int getLootingLevel(DamageSource source, LivingEntity target, int baseLooting);
 
     /**
      * Saves the curios inventory stacks to NBT.
@@ -142,15 +194,10 @@ public interface ICuriosItemHandler extends INBTSerializable {
     void loadInventory(NBTTagList data);
 
     /**
-     * Sets the total Fortune and Looting bonuses associated with the handler.
-     */
-    void setEnchantmentBonuses(int fortune, int looting);
-
-    /**
-     * Retrieves a set containing the ICurioStacksHandler that require its slot modifiers be
+     * Retrieves a set containing the {@link ICurioStacksHandler} that require its slot modifiers be
      * synced to tracking clients.
      *
-     * @return A set of ICurioStacksHandler that need to be synced to tracking clients
+     * @return A set of {@link ICurioStacksHandler} that need to be synced to tracking clients
      */
     Set<ICurioStacksHandler> getUpdatingInventories();
 
@@ -159,21 +206,21 @@ public interface ICuriosItemHandler extends INBTSerializable {
      * <br>
      * These slot modifiers are not serialized and disappear upon deserialization.
      *
-     * @param modifiers A Multimap with slot identifiers as keys and attribute modifiers as values
+     * @param modifiers A {@link Multimap} with slot identifiers as keys and attribute modifiers as values
      */
     void addTransientSlotModifiers(Multimap<String, AttributeModifier> modifiers);
 
     /**
      * Adds the specified slot modifiers to the handler as permanent slot modifiers.
      *
-     * @param modifiers A Multimap with slot identifiers as keys and attribute modifiers as values
+     * @param modifiers A {@link Multimap} with slot identifiers as keys and attribute modifiers as values
      */
     void addPermanentSlotModifiers(Multimap<String, AttributeModifier> modifiers);
 
     /**
      * Removes the specified slot modifiers from the handler.
      *
-     * @param modifiers A Multimap with slot identifiers as keys and attribute modifiers as values
+     * @param modifiers A {@link Multimap} with slot identifiers as keys and attribute modifiers as values
      */
     void removeSlotModifiers(Multimap<String, AttributeModifier> modifiers);
 
@@ -185,7 +232,7 @@ public interface ICuriosItemHandler extends INBTSerializable {
     /**
      * Retrieves all the slot modifiers from the handler.
      *
-     * @return A Multimap with slot identifiers as keys and attribute modifiers as values
+     * @return A {@link Multimap} with slot identifiers as keys and attribute modifiers as values
      */
     Multimap<String, AttributeModifier> getModifiers();
 
@@ -207,6 +254,9 @@ public interface ICuriosItemHandler extends INBTSerializable {
 
     /**
      * Removes the cached modifiers that appear upon deserialization of the handler.
+     * <br>
+     * Primarily for internal use, used as a workaround to avoid calculating slot stacks before slot
+     * modifiers are initially applied.
      */
     void clearCachedSlotModifiers();
 }

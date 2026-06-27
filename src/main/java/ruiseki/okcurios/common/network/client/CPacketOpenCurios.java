@@ -1,4 +1,4 @@
-package ruiseki.okcurios.common.network;
+package ruiseki.okcurios.common.network.client;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -8,10 +8,11 @@ import net.minecraft.world.World;
 import ruiseki.okcore.network.PacketCodec;
 import ruiseki.okcurios.OKCurios;
 import ruiseki.okcurios.common.inventory.container.CuriosGuiHandler;
+import ruiseki.okcurios.common.network.server.SPacketGrabbedItem;
 
-public class PacketOpenCurios extends PacketCodec {
+public class CPacketOpenCurios extends PacketCodec {
 
-    public PacketOpenCurios() {}
+    public CPacketOpenCurios() {}
 
     @Override
     public boolean isAsync() {
@@ -40,7 +41,7 @@ public class PacketOpenCurios extends PacketCodec {
             if (mouseStack != null) {
                 player.inventory.setItemStack(mouseStack);
                 OKCurios.instance.getPacketHandler()
-                    .sendToPlayer(new PacketGrabbedItem(mouseStack), player);
+                    .sendToPlayer(new SPacketGrabbedItem(mouseStack), player);
             }
         }
     }

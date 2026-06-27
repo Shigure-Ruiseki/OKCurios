@@ -16,6 +16,8 @@ package ruiseki.okcurios.api.type;
 
 import net.minecraft.util.ResourceLocation;
 
+import ruiseki.okcurios.api.type.capability.ICurio;
+
 public interface ISlotType extends Comparable<ISlotType> {
 
     /**
@@ -29,9 +31,9 @@ public interface ISlotType extends Comparable<ISlotType> {
     ResourceLocation getIcon();
 
     /**
-     * @return The priority of this slot type for ordering
+     * @return The ordering priority of this slot type, lower numbers appear first
      */
-    int getPriority();
+    int getOrder();
 
     /**
      * @return The number of slots to give by default for this slot type
@@ -39,18 +41,22 @@ public interface ISlotType extends Comparable<ISlotType> {
     int getSize();
 
     /**
-     * @return True if the slot type should be locked by default and not usable until unlocked, false
-     *         otherwise
+     * @return True if the slot type appears in the native Curios GUI, false otherwise
      */
-    boolean isLocked();
-
-    /**
-     * @return True if the slot type should be visible, false otherwise
-     */
-    boolean isVisible();
+    boolean useNativeGui();
 
     /**
      * @return True if the slot type has active cosmetic slots, false otherwise
      */
     boolean hasCosmetic();
+
+    /**
+     * @return True if the slot type can toggle rendering on entities, false otherwise
+     */
+    boolean canToggleRendering();
+
+    /**
+     * @return The {@link ICurio.DropRule} associated with this slot type
+     */
+    ICurio.DropRule getDropRule();
 }

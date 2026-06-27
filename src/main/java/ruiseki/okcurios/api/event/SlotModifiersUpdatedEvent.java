@@ -29,10 +29,6 @@ import com.google.common.collect.ImmutableSet;
  * <br>
  * {@link #types} contains the affected {@link ruiseki.okcurios.api.type.ISlotType}. <br>
  * <br>
- * This event is not {@link cpw.mods.fml.common.eventhandler.Cancelable}. <br>
- * <br>
- * This event does not have a result. {@link HasResult} <br>
- * <br>
  * This event is fired on the {@link net.minecraftforge.common.MinecraftForge#EVENT_BUS}.
  **/
 public class SlotModifiersUpdatedEvent extends LivingEvent {

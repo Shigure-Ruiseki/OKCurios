@@ -14,7 +14,6 @@
  */
 package ruiseki.okcurios.api.event;
 
-import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.event.entity.living.LivingEvent;
 
@@ -25,27 +24,40 @@ import ruiseki.okcurios.api.SlotContext;
  * CurioUnequipEvent is fired when a curio item is about to be unequipped and allows an event
  * listener to specify whether it should or not. <br>
  * This event is fired when ever the
- * {@link ruiseki.okcurios.api.type.capability.ICurio#canUnequip(String, EntityLivingBase)}
+ * {@link ruiseki.okcurios.api.type.capability.ICurio#canUnequip(SlotContext)}
  * is checked. <br>
  * <br>
  * This event has a {@link HasResult result}:
  * <li>{@link Result#ALLOW} means the curio item can be unequipped.</li>
  * <li>{@link Result#DEFAULT} means
- * {@link ruiseki.okcurios.api.type.capability.ICurio#canUnequip(String, EntityLivingBase)}
+ * {@link ruiseki.okcurios.api.type.capability.ICurio#canUnequip(SlotContext)}
  * determines the result.</li>
  * <li>{@link Result#DENY} means the curio item cannot be unequipped.</li><br>
  * This event is fired on the {@link net.minecraftforge.common.MinecraftForge#EVENT_BUS}.
  */
-@Event.HasResult
 public class CurioUnequipEvent extends LivingEvent {
 
     private final SlotContext slotContext;
     private final ItemStack stack;
+    private Event.Result result;
 
     public CurioUnequipEvent(ItemStack stack, SlotContext slotContext) {
-        super(slotContext.wearer());
+        super(slotContext.entity());
         this.slotContext = slotContext;
         this.stack = stack;
+    }
+
+    public Result getUnequipResult() {
+        return this.result;
+    }
+
+    public void setUnequipResult(Result result) {
+        this.result = result;
+    }
+
+    @Override
+    public void setResult(Result result) {
+        this.setUnequipResult(result);
     }
 
     public SlotContext getSlotContext() {

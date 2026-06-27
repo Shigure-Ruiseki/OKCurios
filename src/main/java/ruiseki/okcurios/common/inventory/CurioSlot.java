@@ -1,23 +1,19 @@
 package ruiseki.okcurios.common.inventory;
 
-import java.util.List;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 
 import cpw.mods.fml.common.eventhandler.Event;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import ruiseki.okcore.datastructure.NonNullList;
 import ruiseki.okcore.helper.LangHelpers;
 import ruiseki.okcore.item.SlotItemHandler;
-import ruiseki.okcurios.Reference;
 import ruiseki.okcurios.api.CuriosApi;
 import ruiseki.okcurios.api.SlotContext;
 import ruiseki.okcurios.api.event.CurioEquipEvent;
 import ruiseki.okcurios.api.event.CurioUnequipEvent;
-import ruiseki.okcurios.api.type.capability.ICurio;
 import ruiseki.okcurios.api.type.inventory.IDynamicStackHandler;
 
 public class CurioSlot extends SlotItemHandler {
@@ -25,16 +21,23 @@ public class CurioSlot extends SlotItemHandler {
     private final String identifier;
     private final EntityPlayer player;
     private final SlotContext slotContext;
-    private final List<Boolean> renderStatuses;
+
+    private NonNullList<Boolean> renderStatuses;
+    private boolean canToggleRender;
 
     public CurioSlot(EntityPlayer player, IDynamicStackHandler handler, int index, String identifier, int xPosition,
-        int yPosition, List<Boolean> renders) {
+        int yPosition, NonNullList<Boolean> renders, boolean canToggleRender) {
         super(handler, index, xPosition, yPosition);
         this.identifier = identifier;
         this.renderStatuses = renders;
         this.player = player;
-        this.slotContext = new SlotContext(identifier, player, index);
-
+        this.canToggleRender = canToggleRender;
+        this.slotContext = new SlotContext(
+            identifier,
+            player,
+            index,
+            this instanceof CosmeticCurioSlot,
+            this instanceof CosmeticCurioSlot || renders.get(index));
         if (player.getEntityWorld().isRemote) {
             this.bindClientDirectTexture();
         }
@@ -42,20 +45,22 @@ public class CurioSlot extends SlotItemHandler {
 
     @SideOnly(Side.CLIENT)
     protected void bindClientDirectTexture() {
-        ResourceLocation customTexture = CuriosApi.getIconHelper()
-            .getIcon(this.identifier);
-        if (customTexture != null) {
-            this.setBackgroundTexture(customTexture);
-        } else {
-            this.setBackgroundTexture(new ResourceLocation(Reference.MOD_ID, "textures/slot/empty_curios_slot.png"));
-        }
+        this.setBackgroundTexture(CuriosApi.getSlotIcon(identifier));
     }
 
     public String getIdentifier() {
         return this.identifier;
     }
 
+    public boolean canToggleRender() {
+        return this.canToggleRender;
+    }
+
     public boolean getRenderStatus() {
+
+        if (!this.canToggleRender) {
+            return true;
+        }
         return this.renderStatuses.size() > this.getSlotIndex() && this.renderStatuses.get(this.getSlotIndex());
     }
 
@@ -75,13 +80,9 @@ public class CurioSlot extends SlotItemHandler {
         if (result == Event.Result.DENY) return false;
         if (result == Event.Result.ALLOW) return true;
 
-        ICurio curio = CuriosApi.getCuriosHelper()
-            .getCurio(stack);
-        boolean canEquip = (curio == null) || curio.canEquip(identifier, player);
-
-        return CuriosApi.getCuriosHelper()
-            .isStackValid(slotContext, stack) && canEquip
-            && super.isItemValid(stack);
+        return CuriosApi.isStackValid(slotContext, stack) && CuriosApi.getCurio(stack)
+            .map(curio -> curio.canEquip(slotContext))
+            .orElse(false) && super.isItemValid(stack);
     }
 
     @Override
@@ -96,10 +97,8 @@ public class CurioSlot extends SlotItemHandler {
         if (result == Event.Result.DENY) return false;
         if (result == Event.Result.ALLOW) return true;
 
-        ICurio curio = CuriosApi.getCuriosHelper()
-            .getCurio(stack);
-        boolean canUnequip = (curio == null) || curio.canUnequip(this.identifier, playerIn);
-
-        return canUnequip && super.canTakeStack(playerIn);
+        return CuriosApi.getCurio(stack)
+            .map(curio -> curio.canUnequip(slotContext))
+            .orElse(false) && super.canTakeStack(playerIn);
     }
 }

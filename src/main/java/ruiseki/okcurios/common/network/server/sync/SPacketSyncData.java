@@ -1,22 +1,22 @@
-package ruiseki.okcurios.common.network;
+package ruiseki.okcurios.common.network.server.sync;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 
 import ruiseki.okcore.network.CodecField;
 import ruiseki.okcore.network.PacketCodec;
 
-public class PacketGrabbedItem extends PacketCodec {
+public class SPacketSyncData extends PacketCodec {
 
     @CodecField
-    private ItemStack stack = null;
+    private NBTTagCompound data = new NBTTagCompound();
 
-    public PacketGrabbedItem() {}
+    public SPacketSyncData() {}
 
-    public PacketGrabbedItem(ItemStack stack) {
-        this.stack = stack;
+    public SPacketSyncData(final NBTTagCompound data) {
+        this.data = data;
     }
 
     @Override
@@ -26,9 +26,8 @@ public class PacketGrabbedItem extends PacketCodec {
 
     @Override
     public void actionClient(World world, EntityPlayer player) {
-        if (player != null) {
-            player.inventory.setItemStack(this.stack);
-        }
+        // TODO: Add DataLoader
+        // CuriosEntityManager.applySyncPacket(this.data);
     }
 
     @Override

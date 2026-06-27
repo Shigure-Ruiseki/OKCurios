@@ -15,41 +15,268 @@
 
 package ruiseki.okcurios.api;
 
-import ruiseki.okcurios.api.type.helper.ICuriosHelper;
-import ruiseki.okcurios.api.type.helper.IIconHelper;
-import ruiseki.okcurios.api.type.helper.ISlotHelper;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+
+import javax.annotation.Nonnull;
+
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.ai.attributes.AttributeModifier;
+import net.minecraft.entity.ai.attributes.IAttribute;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.common.util.ForgeDirection;
+
+import org.apache.logging.log4j.Level;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+
+import ruiseki.okcore.OKCore;
+import ruiseki.okcore.capabilities.Capability;
+import ruiseki.okcore.capabilities.ICapabilityProvider;
+import ruiseki.okcore.datastructure.LazyOptional;
+import ruiseki.okcurios.Reference;
+import ruiseki.okcurios.api.type.ISlotType;
+import ruiseki.okcurios.api.type.capability.ICurio;
+import ruiseki.okcurios.api.type.capability.ICurioItem;
+import ruiseki.okcurios.api.type.capability.ICuriosItemHandler;
 
 public final class CuriosApi {
 
-    private static IIconHelper iconHelper;
-    private static ISlotHelper slotHelper;
-    private static ICuriosHelper curiosHelper;
-
-    public static IIconHelper getIconHelper() {
-        return iconHelper;
+    /**
+     * Registers a {@link ICurioItem} instance to an item.
+     * <br>
+     * This will override any existing {@link ICurioItem} interfaces implemented on an item, however
+     * it will NOT override {@link ICurio} instances initialized in
+     * {@link ruiseki.okcore.capabilities.IItemCapability#initCapabilities(ItemStack, NBTTagCompound)}.
+     *
+     * @param item  The item to register the ICurio instance to
+     * @param curio The ICurio instance that provides curio behavior for the item
+     */
+    public static void registerCurio(Item item, ICurioItem curio) {
+        apiError();
     }
 
-    public static ISlotHelper getSlotHelper() {
-        return slotHelper;
+    /**
+     * Gets the registered slot type server-side for the identifier, if it exists.
+     * <br>
+     * This will always be empty client-side.
+     *
+     * @param id The slot type identifier
+     * @return The registered slot type or empty if it doesn't exist
+     */
+    public static Optional<ISlotType> getSlot(String id) {
+        apiError();
+        return Optional.empty();
     }
 
-    public static ICuriosHelper getCuriosHelper() {
-        return curiosHelper;
+    /**
+     * Gets the registered slot type icon client-side for the identifier.
+     * <br>
+     * This will always return the default curio icon server-side. For accurate server-side calls,
+     * see {@link CuriosApi#getSlot(String)} and {@link ISlotType#getIcon()}.
+     *
+     * @param id The slot type identifier
+     * @return The registered slot type or empty if it doesn't exist
+     */
+    @NotNull
+    public static ResourceLocation getSlotIcon(String id) {
+        apiError();
+        return new ResourceLocation(Reference.MOD_ID, "textures/slot/empty_curio_slot");
     }
 
-    public static void setIconHelper(IIconHelper helper) {
-        if (iconHelper == null) {
-            iconHelper = helper;
-        }
+    /**
+     * Gets all the registered slot types server-side.
+     * <br>
+     * This will always be empty client-side.
+     *
+     * @return The registered slot types
+     */
+    public static Map<String, ISlotType> getSlots() {
+        apiError();
+        return new HashMap<>();
     }
 
-    public static void setSlotHelper(ISlotHelper helper) {
-        slotHelper = helper;
+    /**
+     * Gets all the registered slot types provided to player entities server-side.
+     * <br>
+     * This will always be empty client-side.
+     *
+     * @return The slot types provided to player entities
+     */
+    public static Map<String, ISlotType> getPlayerSlots() {
+        apiError();
+        return new HashMap<>();
     }
 
-    public static void setCuriosHelper(ICuriosHelper helper) {
-        if (curiosHelper == null) {
-            curiosHelper = helper;
-        }
+    /**
+     * Gets all the registered slot types provided to an entity type server-side.
+     * <br>
+     * This will always be empty client-side.
+     *
+     * @param type The entity type for the slot types
+     * @return The slot types provided to the entity type
+     */
+    public static Map<String, ISlotType> getEntitySlots(Class<? extends Entity> type) {
+        apiError();
+        return new HashMap<>();
+    }
+
+    /**
+     * Gets all the registered slot types for the provided ItemStack server-side.
+     * <br>
+     * Client-side, the map will be populated by filler {@link ISlotType} that contain only the
+     * identifier and the rest of the information is placeholder.
+     *
+     * @param stack The ItemStack for the slot types
+     * @return The slot types for the provided ItemStack
+     */
+    public static Map<String, ISlotType> getItemStackSlots(ItemStack stack) {
+        apiError();
+        return new HashMap<>();
+    }
+
+    /**
+     * Gets all the registered slot types for the provided ItemStack and entity server-side.
+     * <br>
+     * Client-side, the map will be populated by filler {@link ISlotType} that contain only the
+     * identifier and the rest of the information is placeholder.
+     *
+     * @param stack        The ItemStack for the slot types
+     * @param livingEntity The entity with the slot types
+     * @return The slot types for the provided ItemStack and entity
+     */
+    public static Map<String, ISlotType> getItemStackSlots(ItemStack stack, EntityLivingBase livingEntity) {
+        apiError();
+        return new HashMap<>();
+    }
+
+    /**
+     * Gets a {@link LazyOptional} of the curio capability attached to the {@link ItemStack}.
+     *
+     * @param stack The {@link ItemStack} to get the curio capability from
+     * @return {@link LazyOptional} of the curio capability
+     */
+    public static LazyOptional<ICurio> getCurio(ItemStack stack) {
+        apiError();
+        return LazyOptional.empty();
+    }
+
+    /**
+     * Creates a new {@link ICapabilityProvider} for the given {@link ICurio} instance, to be used in
+     * capability initialization.
+     *
+     * @param curio The ICurio implementation to use
+     * @return The ICapabilityProvider that provides the ICurio implementation
+     */
+    @Nonnull
+    public static ICapabilityProvider createCurioProvider(final ICurio curio) {
+        apiError();
+        return new ICapabilityProvider() {
+
+            @Override
+            public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap,
+                @Nullable ForgeDirection side) {
+                return LazyOptional.empty();
+            }
+        };
+    }
+
+    /**
+     * Gets a {@link LazyOptional} of the curio inventory capability attached to the entity.
+     *
+     * @param livingEntity The {@link Entity} to get the curio inventory capability from
+     * @return {@link LazyOptional} of the curio inventory capability
+     */
+    public static LazyOptional<ICuriosItemHandler> getCuriosInventory(EntityLivingBase livingEntity) {
+        apiError();
+        return LazyOptional.empty();
+    }
+
+    /**
+     * Checks if the ItemStack is valid for a particular stack and slot context.
+     *
+     * @param slotContext Context about the slot that the ItemStack is being checked for
+     * @param stack       The ItemStack in question
+     * @return True if the ItemStack is valid for the slot, false otherwise
+     */
+    public static boolean isStackValid(SlotContext slotContext, ItemStack stack) {
+        apiError();
+        return false;
+    }
+
+    /**
+     * Retrieves a map of attribute modifiers for the ItemStack.
+     * <br>
+     * Note that only the identifier is guaranteed to be present in the slot context. For instances
+     * where the ItemStack may not be in a curio slot, such as when retrieving item tooltips, the
+     * index is -1 and the wearer may be null.
+     *
+     * @param slotContext Context about the slot that the ItemStack is equipped in or may potentially
+     *                    be equipped in
+     * @param uuid        Slot-unique UUID
+     * @param stack       The ItemStack in question
+     * @return A map of attribute modifiers
+     */
+    public static Multimap<IAttribute, AttributeModifier> getAttributeModifiers(SlotContext slotContext, UUID uuid,
+        ItemStack stack) {
+        apiError();
+        return HashMultimap.create();
+    }
+
+    /**
+     * Adds a slot modifier to a specified attribute map.
+     *
+     * @param map        A {@link Multimap} of attributes to attribute modifiers
+     * @param identifier The identifier of the slot to add the modifier onto
+     * @param uuid       A UUID associated wth the slot
+     * @param amount     The amount of the modifier
+     * @param operation  The operation of the modifier
+     */
+    public static void addSlotModifier(Multimap<IAttribute, AttributeModifier> map, String identifier, UUID uuid,
+        double amount, int operation) {
+        apiError();
+    }
+
+    /**
+     * Adds an attribute modifier to an ItemStack's tag data.
+     *
+     * @param stack     The ItemStack to add the modifier to
+     * @param attribute The attribute to add the modifier onto
+     * @param name      The name for the modifier
+     * @param uuid      A UUID associated wth the modifier, or null if the slot UUID should be used
+     * @param amount    The amount of the modifier
+     * @param operation The operation of the modifier
+     * @param slot      The slot that the ItemStack provides the modifier from
+     */
+    public static void addModifier(ItemStack stack, IAttribute attribute, String name, UUID uuid, double amount,
+        int operation, String slot) {
+        apiError();
+    }
+
+    /**
+     * Performs breaking behavior used from the single-input consumer in
+     * {@link ItemStack#damageItem(int, EntityLivingBase)}
+     * <br>
+     * This will be necessary in order to trigger break animations in curio slots
+     * <br>
+     * Example: { stack.hurtAndBreak(amount, entity, damager -> CuriosApi.broadcastCurioBreakEvent(slotContext)); }
+     *
+     * @param slotContext Context about the slot that the curio is in
+     */
+    public static void broadcastCurioBreakEvent(SlotContext slotContext) {
+        apiError();
+    }
+
+    static void apiError() {
+        OKCore.okLog(Level.ERROR, "Missing Curios API implementation!");
     }
 }

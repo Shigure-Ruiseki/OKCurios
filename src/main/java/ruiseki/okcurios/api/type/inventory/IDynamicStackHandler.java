@@ -25,7 +25,7 @@ import ruiseki.okcore.persist.nbt.INBTSerializable;
 public interface IDynamicStackHandler extends IItemHandlerModifiable, INBTSerializable {
 
     /**
-     * Sets a {@link net.minecraft.item.ItemStack} to the given slot index as the current stack.
+     * Sets a {@link ItemStack} to the given slot index as the current stack.
      *
      * @param slot  The slot index
      * @param stack The {@link ItemStack} to assign as the current stack

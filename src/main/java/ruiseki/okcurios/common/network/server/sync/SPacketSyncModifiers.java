@@ -1,4 +1,4 @@
-package ruiseki.okcurios.common.network.sync;
+package ruiseki.okcurios.common.network.server.sync;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -18,11 +18,10 @@ import ruiseki.okcore.network.ExtendedBuffer;
 import ruiseki.okcore.network.PacketCodec;
 import ruiseki.okcurios.api.CuriosApi;
 import ruiseki.okcurios.api.event.SlotModifiersUpdatedEvent;
-import ruiseki.okcurios.api.type.capability.ICuriosItemHandler;
 import ruiseki.okcurios.api.type.inventory.ICurioStacksHandler;
 import ruiseki.okcurios.common.inventory.container.CuriosContainer;
 
-public class PacketSyncModifiers extends PacketCodec {
+public class SPacketSyncModifiers extends PacketCodec {
 
     @CodecField
     private int entityId = -1;
@@ -30,9 +29,9 @@ public class PacketSyncModifiers extends PacketCodec {
     private int entrySize = -1;
     private Map<String, NBTTagCompound> updates = new LinkedHashMap<>();
 
-    public PacketSyncModifiers() {}
+    public SPacketSyncModifiers() {}
 
-    public PacketSyncModifiers(int entityId, Set<ICurioStacksHandler> updates) {
+    public SPacketSyncModifiers(int entityId, Set<ICurioStacksHandler> updates) {
         Map<String, NBTTagCompound> result = new LinkedHashMap<>();
 
         for (ICurioStacksHandler stacksHandler : updates) {
@@ -75,31 +74,31 @@ public class PacketSyncModifiers extends PacketCodec {
     public void actionClient(World world, EntityPlayer player) {
         if (world != null) {
             Entity entity = world.getEntityByID(entityId);
-            if (entity instanceof EntityLivingBase livingBase) {
-                ICuriosItemHandler handler = CuriosApi.getCuriosHelper()
-                    .getCuriosHandler(livingBase);
-                if (handler != null) {
-                    Map<String, ICurioStacksHandler> curios = handler.getCurios();
+            if (entity instanceof EntityLivingBase livingEntity) {
+                CuriosApi.getCuriosInventory(livingEntity)
+                    .ifPresent(handler -> {
+                        Map<String, ICurioStacksHandler> curios = handler.getCurios();
 
-                    for (Map.Entry<String, NBTTagCompound> entry : this.updates.entrySet()) {
-                        String id = entry.getKey();
-                        ICurioStacksHandler stacksHandler = curios.get(id);
+                        for (Map.Entry<String, NBTTagCompound> entry : this.updates.entrySet()) {
+                            String id = entry.getKey();
+                            ICurioStacksHandler stacksHandler = curios.get(id);
 
-                        if (stacksHandler != null) {
-                            stacksHandler.applySyncTag(entry.getValue());
+                            if (stacksHandler != null) {
+                                stacksHandler.applySyncTag(entry.getValue());
+                            }
                         }
-                    }
 
-                    if (!this.updates.isEmpty()) {
-                        MinecraftForge.EVENT_BUS.post(new SlotModifiersUpdatedEvent(livingBase, this.updates.keySet()));
-                    }
-
-                    if (entity instanceof EntityPlayer entityPlayer) {
-                        if (entityPlayer.openContainer instanceof CuriosContainer) {
-                            ((CuriosContainer) player.openContainer).resetSlots();
+                        if (!this.updates.isEmpty()) {
+                            MinecraftForge.EVENT_BUS
+                                .post(new SlotModifiersUpdatedEvent(livingEntity, this.updates.keySet()));
                         }
-                    }
-                }
+
+                        if (entity instanceof EntityPlayer entityPlayer) {
+                            if (entityPlayer.openContainer instanceof CuriosContainer) {
+                                ((CuriosContainer) player.openContainer).resetSlots();
+                            }
+                        }
+                    });
             }
         }
     }

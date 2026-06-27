@@ -8,16 +8,18 @@ import ruiseki.okcore.network.PacketHandler;
 import ruiseki.okcore.proxy.CommonProxyComponent;
 import ruiseki.okcurios.client.gui.GuiEventHandler;
 import ruiseki.okcurios.common.event.CuriosEventHandler;
-import ruiseki.okcurios.common.network.PacketBreak;
-import ruiseki.okcurios.common.network.PacketGrabbedItem;
-import ruiseki.okcurios.common.network.PacketOpenCurios;
-import ruiseki.okcurios.common.network.PacketOpenVanilla;
-import ruiseki.okcurios.common.network.PacketScroll;
-import ruiseki.okcurios.common.network.PacketSetIcons;
-import ruiseki.okcurios.common.network.sync.PacketSyncCurios;
-import ruiseki.okcurios.common.network.sync.PacketSyncModifiers;
-import ruiseki.okcurios.common.network.sync.PacketSyncOperation;
-import ruiseki.okcurios.common.network.sync.PacketSyncStack;
+import ruiseki.okcurios.common.network.client.CPacketOpenCurios;
+import ruiseki.okcurios.common.network.client.CPacketOpenVanilla;
+import ruiseki.okcurios.common.network.client.CPacketScroll;
+import ruiseki.okcurios.common.network.server.SPacketBreak;
+import ruiseki.okcurios.common.network.server.SPacketGrabbedItem;
+import ruiseki.okcurios.common.network.server.SPacketScroll;
+import ruiseki.okcurios.common.network.server.SPacketSetIcons;
+import ruiseki.okcurios.common.network.server.sync.SPacketSyncCurios;
+import ruiseki.okcurios.common.network.server.sync.SPacketSyncData;
+import ruiseki.okcurios.common.network.server.sync.SPacketSyncModifiers;
+import ruiseki.okcurios.common.network.server.sync.SPacketSyncRender;
+import ruiseki.okcurios.common.network.server.sync.SPacketSyncStack;
 
 public class CommonProxy extends CommonProxyComponent {
 
@@ -28,17 +30,20 @@ public class CommonProxy extends CommonProxyComponent {
 
     @Override
     public void registerPacketHandlers(PacketHandler packetHandler) {
-        packetHandler.register(PacketSyncCurios.class);
-        packetHandler.register(PacketSyncModifiers.class);
-        packetHandler.register(PacketSyncStack.class);
-        packetHandler.register(PacketSyncOperation.class);
+        packetHandler.register(SPacketSyncCurios.class);
+        packetHandler.register(SPacketSyncModifiers.class);
+        packetHandler.register(SPacketSyncData.class);
+        packetHandler.register(SPacketSyncRender.class);
+        packetHandler.register(SPacketSyncStack.class);
 
-        packetHandler.register(PacketGrabbedItem.class);
-        packetHandler.register(PacketOpenVanilla.class);
-        packetHandler.register(PacketScroll.class);
-        packetHandler.register(PacketSetIcons.class);
-        packetHandler.register(PacketBreak.class);
-        packetHandler.register(PacketOpenCurios.class);
+        packetHandler.register(SPacketGrabbedItem.class);
+        packetHandler.register(SPacketScroll.class);
+        packetHandler.register(SPacketSetIcons.class);
+        packetHandler.register(SPacketBreak.class);
+
+        packetHandler.register(CPacketOpenCurios.class);
+        packetHandler.register(CPacketOpenVanilla.class);
+        packetHandler.register(CPacketScroll.class);
     }
 
     @Override

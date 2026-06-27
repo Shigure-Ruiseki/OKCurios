@@ -8,7 +8,6 @@ import net.minecraft.creativetab.CreativeTabs;
 import org.apache.logging.log4j.Level;
 
 import com.google.common.collect.Maps;
-import com.gtnewhorizon.gtnhlib.config.ConfigException;
 
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.SidedProxy;
@@ -21,18 +20,11 @@ import cpw.mods.fml.common.event.FMLServerStoppedEvent;
 import cpw.mods.fml.common.event.FMLServerStoppingEvent;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import ruiseki.okcore.command.CommandMod;
-import ruiseki.okcore.helper.MinecraftHelpers;
 import ruiseki.okcore.init.ModBase;
 import ruiseki.okcore.proxy.ICommonProxy;
-import ruiseki.okcurios.api.CuriosApi;
-import ruiseki.okcurios.client.IconHelper;
-import ruiseki.okcurios.common.CuriosHelper;
-import ruiseki.okcurios.common.SlotHelper;
 import ruiseki.okcurios.common.capability.CurioInventoryCapability;
 import ruiseki.okcurios.common.capability.CurioItemCapability;
 import ruiseki.okcurios.common.inventory.container.CuriosGuiHandler;
-import ruiseki.okcurios.common.slottype.SlotTypeManager;
-import ruiseki.okcurios.config.ModConfig;
 
 @Mod(
     modid = Reference.MOD_ID,
@@ -41,14 +33,6 @@ import ruiseki.okcurios.config.ModConfig;
     dependencies = Reference.DEPENDENCIES,
     guiFactory = Reference.GUI_FACTORY)
 public class OKCurios extends ModBase {
-
-    static {
-        try {
-            ModConfig.registerConfig();
-        } catch (ConfigException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     @SidedProxy(serverSide = Reference.PROXY_COMMON, clientSide = Reference.PROXY_CLIENT)
     public static ICommonProxy proxy;
@@ -68,11 +52,6 @@ public class OKCurios extends ModBase {
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         super.preInit(event);
-        CuriosApi.setCuriosHelper(new CuriosHelper());
-
-        if (MinecraftHelpers.isClientSide()) {
-            CuriosApi.setIconHelper(new IconHelper());
-        }
     }
 
     @Override
@@ -100,8 +79,7 @@ public class OKCurios extends ModBase {
     @Mod.EventHandler
     public void onServerStarting(FMLServerStartingEvent event) {
         super.onServerStarting(event);
-        CuriosApi.setSlotHelper(new SlotHelper());
-        SlotTypeManager.buildSlotTypes();
+
     }
 
     @Override

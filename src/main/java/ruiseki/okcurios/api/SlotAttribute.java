@@ -12,31 +12,32 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with Curios. If not, see <https://www.gnu.org/licenses/>.
  */
-package ruiseki.okcurios.client;
+
+package ruiseki.okcurios.api;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.entity.ai.attributes.RangedAttribute;
 
-import ruiseki.okcurios.api.type.helper.IIconHelper;
+public class SlotAttribute extends RangedAttribute {
 
-public class IconHelper implements IIconHelper {
+    private static final Map<String, SlotAttribute> SLOT_ATTRIBUTES = new HashMap<>();
 
-    private Map<String, ResourceLocation> idToIcon = new HashMap<>();
+    private final String identifier;
 
-    @Override
-    public void clearIcons() {
-        this.idToIcon.clear();
+    public static SlotAttribute getOrCreate(String id) {
+        if (id == null) return null;
+        return SLOT_ATTRIBUTES.computeIfAbsent(id, SlotAttribute::new);
     }
 
-    @Override
-    public void addIcon(String identifier, ResourceLocation resourceLocation) {
-        this.idToIcon.putIfAbsent(identifier, resourceLocation);
+    protected SlotAttribute(String identifier) {
+        super("curios.slot." + identifier, 0.0, 0.0, 64.0);
+        this.identifier = identifier;
+        this.setShouldWatch(true);
     }
 
-    @Override
-    public ResourceLocation getIcon(String identifier) {
-        return idToIcon.getOrDefault(identifier, new ResourceLocation("textures/slot/empty_curios_slot.png"));
+    public String getIdentifier() {
+        return this.identifier;
     }
 }

@@ -17,6 +17,7 @@ import net.minecraft.util.MathHelper;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import ruiseki.okcore.datastructure.LazyOptional;
 import ruiseki.okcurios.OKCurios;
 import ruiseki.okcurios.api.CuriosApi;
 import ruiseki.okcurios.api.type.capability.ICuriosItemHandler;
@@ -24,12 +25,13 @@ import ruiseki.okcurios.api.type.inventory.ICurioStacksHandler;
 import ruiseki.okcurios.api.type.inventory.IDynamicStackHandler;
 import ruiseki.okcurios.common.inventory.CosmeticCurioSlot;
 import ruiseki.okcurios.common.inventory.CurioSlot;
-import ruiseki.okcurios.common.network.PacketScroll;
+import ruiseki.okcurios.common.network.server.SPacketScroll;
 
 public class CuriosContainer extends ContainerPlayer {
 
-    public final ICuriosItemHandler curiosHandler;
+    public final LazyOptional<ICuriosItemHandler> curiosHandler;
     private final EntityPlayer player;
+
     private final boolean isLocalWorld;
 
     public int lastScrollIndex = 0;
@@ -45,8 +47,7 @@ public class CuriosContainer extends ContainerPlayer {
 
         this.player = player;
         this.isLocalWorld = isRemote;
-        this.curiosHandler = CuriosApi.getCuriosHelper()
-            .getCuriosHandler(player);
+        this.curiosHandler = CuriosApi.getCuriosInventory(player);
 
         this.addSlotToContainer(
             new SlotCrafting(playerInventory.player, this.craftMatrix, this.craftResult, 0, 144, 36));
@@ -92,8 +93,8 @@ public class CuriosContainer extends ContainerPlayer {
             this.addSlotToContainer(new Slot(playerInventory, i1, 8 + i1 * 18, 142));
         }
 
-        if (this.curiosHandler != null) {
-            Map<String, ICurioStacksHandler> curioMap = this.curiosHandler.getCurios();
+        this.curiosHandler.ifPresent(curios -> {
+            Map<String, ICurioStacksHandler> curioMap = curios.getCurios();
             int slots = 0;
             int yOffset = 12;
 
@@ -111,7 +112,8 @@ public class CuriosContainer extends ContainerPlayer {
                                 identifier,
                                 -18,
                                 yOffset,
-                                stacksHandler.getRenders()));
+                                stacksHandler.getRenders(),
+                                stacksHandler.canToggleRendering()));
                         yOffset += 18;
                         slots++;
                     }
@@ -133,7 +135,7 @@ public class CuriosContainer extends ContainerPlayer {
                     }
                 }
             }
-        }
+        });
         this.scrollToIndex(0);
     }
 
@@ -153,110 +155,114 @@ public class CuriosContainer extends ContainerPlayer {
     }
 
     public void scrollToIndex(int indexIn) {
-        if (this.curiosHandler == null) return;
 
-        Map<String, ICurioStacksHandler> curioMap = this.curiosHandler.getCurios();
-        int slots = 0;
-        int yOffset = 12;
-        int index = 0;
-        int startingIndex = indexIn;
+        this.curiosHandler.ifPresent(curios -> {
+            Map<String, ICurioStacksHandler> curioMap = curios.getCurios();
 
-        if (this.inventorySlots.size() > CURIOS_START_INDEX) {
-            this.inventorySlots.subList(CURIOS_START_INDEX, this.inventorySlots.size())
-                .clear();
-        }
-        if (this.inventoryItemStacks != null && this.inventoryItemStacks.size() > CURIOS_START_INDEX) {
-            this.inventoryItemStacks.subList(CURIOS_START_INDEX, this.inventoryItemStacks.size())
-                .clear();
-        }
+            int slots = 0;
+            int yOffset = 12;
+            int index = 0;
+            int startingIndex = indexIn;
 
-        for (String identifier : curioMap.keySet()) {
-            ICurioStacksHandler stacksHandler = curioMap.get(identifier);
-            IDynamicStackHandler stackHandler = stacksHandler.getStacks();
+            if (this.inventorySlots.size() > CURIOS_START_INDEX) {
+                this.inventorySlots.subList(CURIOS_START_INDEX, this.inventorySlots.size())
+                    .clear();
+            }
+            if (this.inventoryItemStacks != null && this.inventoryItemStacks.size() > CURIOS_START_INDEX) {
+                this.inventoryItemStacks.subList(CURIOS_START_INDEX, this.inventoryItemStacks.size())
+                    .clear();
+            }
 
-            if (stacksHandler.isVisible()) {
-                for (int i = 0; i < stackHandler.getSlots() && slots < 8; i++) {
-                    if (index >= startingIndex) {
-                        slots++;
+            for (String identifier : curioMap.keySet()) {
+                ICurioStacksHandler stacksHandler = curioMap.get(identifier);
+                IDynamicStackHandler stackHandler = stacksHandler.getStacks();
+
+                if (stacksHandler.isVisible()) {
+                    for (int i = 0; i < stackHandler.getSlots() && slots < 8; i++) {
+                        if (index >= startingIndex) {
+                            slots++;
+                        }
+                        index++;
                     }
-                    index++;
                 }
             }
-        }
 
-        startingIndex = MathHelper.clamp_int(startingIndex, 0, index - 8);
-        index = 0;
-        slots = 0;
+            startingIndex = MathHelper.clamp_int(startingIndex, 0, index - 8);
+            index = 0;
+            slots = 0;
 
-        for (String identifier : curioMap.keySet()) {
-            ICurioStacksHandler stacksHandler = curioMap.get(identifier);
-            IDynamicStackHandler stackHandler = stacksHandler.getStacks();
+            for (String identifier : curioMap.keySet()) {
+                ICurioStacksHandler stacksHandler = curioMap.get(identifier);
+                IDynamicStackHandler stackHandler = stacksHandler.getStacks();
 
-            if (stacksHandler.isVisible()) {
-                for (int i = 0; i < stackHandler.getSlots() && slots < 8; i++) {
-                    if (index >= startingIndex) {
-                        this.addSlotToContainer(
-                            new CurioSlot(
-                                this.player,
-                                stackHandler,
-                                i,
-                                identifier,
-                                -18,
-                                yOffset,
-                                stacksHandler.getRenders()));
-                        yOffset += 18;
-                        slots++;
+                if (stacksHandler.isVisible()) {
+                    for (int i = 0; i < stackHandler.getSlots() && slots < 8; i++) {
+                        if (index >= startingIndex) {
+                            this.addSlotToContainer(
+                                new CurioSlot(
+                                    this.player,
+                                    stackHandler,
+                                    i,
+                                    identifier,
+                                    -18,
+                                    yOffset,
+                                    stacksHandler.getRenders(),
+                                    stacksHandler.canToggleRendering()));
+                            yOffset += 18;
+                            slots++;
+                        }
+                        index++;
                     }
-                    index++;
                 }
             }
-        }
 
-        index = 0;
-        slots = 0;
-        yOffset = 12;
+            index = 0;
+            slots = 0;
+            yOffset = 12;
 
-        for (String identifier : curioMap.keySet()) {
-            ICurioStacksHandler stacksHandler = curioMap.get(identifier);
-            if (stacksHandler.isVisible() && stacksHandler.hasCosmetic()) {
-                IDynamicStackHandler cosmeticHandler = stacksHandler.getCosmeticStacks();
-                for (int i = 0; i < cosmeticHandler.getSlots() && slots < 8; i++) {
-                    if (index >= startingIndex) {
-                        this.cosmeticColumn = true;
-                        this.addSlotToContainer(
-                            new CosmeticCurioSlot(this.player, cosmeticHandler, i, identifier, -37, yOffset));
-                        yOffset += 18;
-                        slots++;
+            for (String identifier : curioMap.keySet()) {
+                ICurioStacksHandler stacksHandler = curioMap.get(identifier);
+                if (stacksHandler.isVisible() && stacksHandler.hasCosmetic()) {
+                    IDynamicStackHandler cosmeticHandler = stacksHandler.getCosmeticStacks();
+                    for (int i = 0; i < cosmeticHandler.getSlots() && slots < 8; i++) {
+                        if (index >= startingIndex) {
+                            this.cosmeticColumn = true;
+                            this.addSlotToContainer(
+                                new CosmeticCurioSlot(this.player, cosmeticHandler, i, identifier, -37, yOffset));
+                            yOffset += 18;
+                            slots++;
+                        }
+                        index++;
                     }
-                    index++;
                 }
             }
-        }
 
-        if (!this.isLocalWorld && this.player instanceof EntityPlayerMP playerMP) {
-            OKCurios.instance.getPacketHandler()
-                .sendToPlayer(new PacketScroll(this.windowId, indexIn), playerMP);
-        }
-        this.lastScrollIndex = indexIn;
+            if (!this.isLocalWorld && this.player instanceof EntityPlayerMP playerMP) {
+                OKCurios.instance.getPacketHandler()
+                    .sendToPlayer(new SPacketScroll(this.windowId, indexIn), playerMP);
+            }
+            this.lastScrollIndex = indexIn;
+        });
     }
 
     public void scrollTo(float pos) {
-        if (this.curiosHandler == null) return;
-        int k = (this.curiosHandler.getVisibleSlots() - 8);
-        int j = (int) (pos * k + 0.5D);
+        this.curiosHandler.ifPresent(curios -> {
+            int k = (curios.getVisibleSlots() - 8);
+            int j = (int) (pos * k + 0.5D);
 
-        if (j < 0) {
-            j = 0;
-        }
+            if (j < 0) {
+                j = 0;
+            }
 
-        if (j == this.lastScrollIndex) {
-            return;
-        }
+            if (j == this.lastScrollIndex) {
+                return;
+            }
 
-        if (this.isLocalWorld) {
-            OKCurios.instance.getPacketHandler()
-                .sendToServer(new PacketScroll(this.windowId, j));
-        }
+            if (this.isLocalWorld) {
+                OKCurios.instance.getPacketHandler()
+                    .sendToServer(new SPacketScroll(this.windowId, j));
+            }
+        });
     }
 
     @Override
@@ -283,8 +289,15 @@ public class CuriosContainer extends ContainerPlayer {
     }
 
     public boolean canScroll() {
-        if (this.curiosHandler == null) return false;
-        return this.curiosHandler.getVisibleSlots() > 8;
+
+        return this.curiosHandler.map(curios -> {
+
+            if (curios.getVisibleSlots() > 8) {
+                return 1;
+            }
+            return 0;
+        })
+            .orElse(0) == 1;
     }
 
     @Override
@@ -296,7 +309,6 @@ public class CuriosContainer extends ContainerPlayer {
     public ItemStack transferStackInSlot(EntityPlayer playerIn, int index) {
         ItemStack itemstack = null;
         Slot slot = (Slot) this.inventorySlots.get(index);
-
         if (slot != null && slot.getHasStack()) {
             ItemStack itemstack1 = slot.getStack();
             itemstack = itemstack1.copy();
@@ -306,23 +318,31 @@ public class CuriosContainer extends ContainerPlayer {
                     return null;
                 }
                 slot.onSlotChange(itemstack1, itemstack);
-            }
-
-            else if (index < 9) {
+            } else if (index < 9) {
                 if (!this.mergeItemStack(itemstack1, 9, 45, false)) {
                     return null;
                 }
             } else if (index < 45) {
-                if (!CuriosApi.getCuriosHelper()
-                    .getCurioTags(itemstack1.getItem())
-                    .isEmpty()) {
+                if (CuriosApi.getCuriosInventory(playerIn)
+                    .isPresent()
+                    && !CuriosApi.getItemStackSlots(itemstack1)
+                        .isEmpty()) {
                     if (!this.mergeItemStack(itemstack1, CURIOS_START_INDEX, this.inventorySlots.size(), false)) {
                         return null;
                     }
                 } else if (itemstack1.getItem() instanceof ItemArmor armor) {
                     int armorSlot = 5 + (3 - armor.armorType);
-                    if (!((Slot) this.inventorySlots.get(armorSlot)).getHasStack()) {
+                    Slot targetArmorSlot = (Slot) this.inventorySlots.get(armorSlot);
+                    if (!targetArmorSlot.getHasStack() && targetArmorSlot.isItemValid(itemstack1)) {
                         if (!this.mergeItemStack(itemstack1, armorSlot, armorSlot + 1, false)) {
+                            return null;
+                        }
+                    } else if (index < 36) {
+                        if (!this.mergeItemStack(itemstack1, 36, 45, false)) {
+                            return null;
+                        }
+                    } else {
+                        if (!this.mergeItemStack(itemstack1, 9, 36, false)) {
                             return null;
                         }
                     }
@@ -330,11 +350,15 @@ public class CuriosContainer extends ContainerPlayer {
                     if (!this.mergeItemStack(itemstack1, 36, 45, false)) {
                         return null;
                     }
-                } else if (!this.mergeItemStack(itemstack1, 9, 36, false)) {
+                } else {
+                    if (!this.mergeItemStack(itemstack1, 9, 36, false)) {
+                        return null;
+                    }
+                }
+            } else {
+                if (!this.mergeItemStack(itemstack1, 9, 45, false)) {
                     return null;
                 }
-            } else if (!this.mergeItemStack(itemstack1, 9, 45, false)) {
-                return null;
             }
 
             if (itemstack1.stackSize == 0) {
@@ -346,6 +370,7 @@ public class CuriosContainer extends ContainerPlayer {
             if (itemstack1.stackSize == itemstack.stackSize) {
                 return null;
             }
+
             slot.onPickupFromSlot(playerIn, itemstack1);
         }
 
