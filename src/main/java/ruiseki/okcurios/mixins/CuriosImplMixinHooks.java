@@ -1,17 +1,23 @@
 package ruiseki.okcurios.mixins;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.ai.attributes.IAttribute;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 
 import com.google.common.collect.HashMultimap;
@@ -20,7 +26,9 @@ import com.google.common.collect.Multimap;
 import ruiseki.okcore.datastructure.LazyOptional;
 import ruiseki.okcore.helper.EntityHelpers;
 import ruiseki.okcore.helper.ItemStackHelpers;
+import ruiseki.okcore.helper.TagHelpers;
 import ruiseki.okcurios.OKCurios;
+import ruiseki.okcurios.Reference;
 import ruiseki.okcurios.api.CuriosApi;
 import ruiseki.okcurios.api.CuriosCapability;
 import ruiseki.okcurios.api.SlotAttribute;
@@ -30,7 +38,10 @@ import ruiseki.okcurios.api.type.ISlotType;
 import ruiseki.okcurios.api.type.capability.ICurio;
 import ruiseki.okcurios.api.type.capability.ICurioItem;
 import ruiseki.okcurios.api.type.capability.ICuriosItemHandler;
+import ruiseki.okcurios.common.data.entity.CuriosEntityManager;
+import ruiseki.okcurios.common.data.slot.CuriosSlotManager;
 import ruiseki.okcurios.common.network.server.SPacketBreak;
+import ruiseki.okcurios.common.slottype.SlotType;
 
 public class CuriosImplMixinHooks {
 
@@ -49,74 +60,74 @@ public class CuriosImplMixinHooks {
             CuriosApi.getSlots()
                 .get(id));
     }
-    //
-    // public static ResourceLocation getSlotIcon(String id) {
-    // return CuriosSlotManager.INSTANCE.getIcon(id);
-    // }
-    //
-    // public static Map<String, ISlotType> getSlots() {
-    // return CuriosSlotManager.INSTANCE.getSlots();
-    // }
-    //
-    // public static Map<String, ISlotType> getPlayerSlots() {
-    // return CuriosApi.getEntitySlots(EntityPlayer.class);
-    // }
-    //
-    // public static Map<String, ISlotType> getEntitySlots(Class<? extends Entity> type) {
-    // return CuriosEntityManager.INSTANCE.getEntitySlots(type);
-    // }
-    //
-    // public static Map<String, ISlotType> getItemStackSlots(ItemStack stack) {
-    // Map<String, ISlotType> result = new HashMap<>();
-    // Set<String> ids = TagHelpers.getTags(stack)
-    // .stream()
-    // .filter(
-    // tagKey -> tagKey.location()
-    // .getResourceDomain()
-    // .equals(Reference.MOD_ID))
-    // .map(
-    // tagKey -> tagKey.location()
-    // .getResourcePath())
-    // .collect(Collectors.toSet());
-    // Map<String, ISlotType> allSlots = CuriosSlotManager.INSTANCE.getSlots();
-    //
-    // for (String id : ids) {
-    // ISlotType slotType = allSlots.get(id);
-    //
-    // if (slotType != null) {
-    // result.put(id, slotType);
-    // } else {
-    // result.put(id, new SlotType.Builder(id).build());
-    // }
-    // }
-    // return result;
-    // }
-    //
-    // public static Map<String, ISlotType> getItemStackSlots(ItemStack stack, EntityLivingBase livingEntity) {
-    // Map<String, ISlotType> result = new HashMap<>();
-    // Set<String> ids = TagHelpers.getTags(stack)
-    // .stream()
-    // .filter(
-    // tagKey -> tagKey.location()
-    // .getResourceDomain()
-    // .equals(Reference.MOD_ID))
-    // .map(
-    // tagKey -> tagKey.location()
-    // .getResourcePath())
-    // .collect(Collectors.toSet());
-    // Map<String, ISlotType> entitySlots = getEntitySlots(livingEntity.getClass());
-    //
-    // for (String id : ids) {
-    // ISlotType slotType = entitySlots.get(id);
-    //
-    // if (slotType != null) {
-    // result.put(id, slotType);
-    // } else {
-    // result.put(id, new SlotType.Builder(id).build());
-    // }
-    // }
-    // return result;
-    // }
+
+    public static ResourceLocation getSlotIcon(String id) {
+        return CuriosSlotManager.INSTANCE.getIcon(id);
+    }
+
+    public static Map<String, ISlotType> getSlots() {
+        return CuriosSlotManager.INSTANCE.getSlots();
+    }
+
+    public static Map<String, ISlotType> getPlayerSlots() {
+        return CuriosApi.getEntitySlots(EntityPlayer.class);
+    }
+
+    public static Map<String, ISlotType> getEntitySlots(Class<? extends Entity> type) {
+        return CuriosEntityManager.INSTANCE.getEntitySlots(type);
+    }
+
+    public static Map<String, ISlotType> getItemStackSlots(ItemStack stack) {
+        Map<String, ISlotType> result = new HashMap<>();
+        Set<String> ids = TagHelpers.getTags(stack)
+            .stream()
+            .filter(
+                tagKey -> tagKey.location()
+                    .getResourceDomain()
+                    .equals(Reference.MOD_ID))
+            .map(
+                tagKey -> tagKey.location()
+                    .getResourcePath())
+            .collect(Collectors.toSet());
+        Map<String, ISlotType> allSlots = CuriosSlotManager.INSTANCE.getSlots();
+
+        for (String id : ids) {
+            ISlotType slotType = allSlots.get(id);
+
+            if (slotType != null) {
+                result.put(id, slotType);
+            } else {
+                result.put(id, new SlotType.Builder(id).build());
+            }
+        }
+        return result;
+    }
+
+    public static Map<String, ISlotType> getItemStackSlots(ItemStack stack, EntityLivingBase livingEntity) {
+        Map<String, ISlotType> result = new HashMap<>();
+        Set<String> ids = TagHelpers.getTags(stack)
+            .stream()
+            .filter(
+                tagKey -> tagKey.location()
+                    .getResourceDomain()
+                    .equals(Reference.MOD_ID))
+            .map(
+                tagKey -> tagKey.location()
+                    .getResourcePath())
+            .collect(Collectors.toSet());
+        Map<String, ISlotType> entitySlots = getEntitySlots(livingEntity.getClass());
+
+        for (String id : ids) {
+            ISlotType slotType = entitySlots.get(id);
+
+            if (slotType != null) {
+                result.put(id, slotType);
+            } else {
+                result.put(id, new SlotType.Builder(id).build());
+            }
+        }
+        return result;
+    }
 
     public static LazyOptional<ICurio> getCurio(ItemStack stack) {
         return ItemStackHelpers.getCapability(stack, CuriosCapability.ITEM);
@@ -126,11 +137,11 @@ public class CuriosImplMixinHooks {
         return EntityHelpers.getCapability(livingEntity, CuriosCapability.INVENTORY);
     }
 
-    // public static boolean isStackValid(SlotContext slotContext, ItemStack stack) {
-    // String id = slotContext.identifier();
-    // Set<String> slots = getItemStackSlots(stack).keySet();
-    // return (!slots.isEmpty() && id.equals("curio")) || slots.contains(id) || slots.contains("curio");
-    // }
+    public static boolean isStackValid(SlotContext slotContext, ItemStack stack) {
+        String id = slotContext.identifier();
+        Set<String> slots = getItemStackSlots(stack).keySet();
+        return (!slots.isEmpty() && id.equals("curio")) || slots.contains(id) || slots.contains("curio");
+    }
 
     public static Multimap<IAttribute, AttributeModifier> getAttributeModifiers(SlotContext slotContext, UUID uuid,
         ItemStack stack) {

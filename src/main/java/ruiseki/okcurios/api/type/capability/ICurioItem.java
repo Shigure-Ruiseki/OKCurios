@@ -15,7 +15,9 @@
 package ruiseki.okcurios.api.type.capability;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
@@ -32,6 +34,8 @@ import com.google.common.collect.Multimap;
 import baubles.api.BaubleType;
 import baubles.api.expanded.IBaubleExpanded;
 import cpw.mods.fml.common.Optional;
+import ruiseki.okcore.helper.TagHelpers;
+import ruiseki.okcurios.Reference;
 import ruiseki.okcurios.api.SlotContext;
 
 /**
@@ -42,7 +46,9 @@ import ruiseki.okcurios.api.SlotContext;
  *
  * @author Extegral
  */
-@Optional.Interface(iface = "baubles.api.IBaubleExpanded", modid = "Baubles")
+@Optional.InterfaceList({
+    @Optional.Interface(modid = "Baubles|Expanded", iface = "baubles.api.expanded.IBaubleExpanded"),
+    @Optional.Interface(modid = "Baubles", iface = "baubles.api.IBauble"), })
 public interface ICurioItem extends IBaubleExpanded {
 
     /**
@@ -286,8 +292,24 @@ public interface ICurioItem extends IBaubleExpanded {
      * BAUBLES EXPANDED COMPATIBILITY
      */
     @Override
+    @Optional.Method(modid = "Baubles|Expanded")
     default String[] getBaubleTypes(ItemStack itemstack) {
-        return new String[] { "ring" };
+        if (itemstack == null) return new String[] { "curios" };
+
+        Set<String> ids = TagHelpers.getTags(itemstack)
+            .stream()
+            .filter(
+                tagKey -> tagKey.location()
+                    .getResourceDomain()
+                    .equals(Reference.MOD_ID))
+            .map(
+                tagKey -> tagKey.location()
+                    .getResourcePath())
+            .collect(Collectors.toSet());
+
+        if (ids.isEmpty()) return new String[] { "curios" };
+
+        return ids.toArray(new String[0]);
     }
 
     @Override
@@ -298,15 +320,16 @@ public interface ICurioItem extends IBaubleExpanded {
             String primaryType = types[0];
             if ("amulet".equals(primaryType)) return BaubleType.AMULET;
             if ("belt".equals(primaryType)) return BaubleType.BELT;
+            if ("ring".equals(primaryType)) return BaubleType.RING;
         }
-        return BaubleType.RING;
+        return BaubleType.UNIVERSAL;
     }
 
     @Override
     @Optional.Method(modid = "Baubles")
     default void onWornTick(ItemStack itemstack, EntityLivingBase player) {
         String[] types = getBaubleTypes(itemstack);
-        String identifier = (types != null && types.length > 0) ? types[0] : "ring";
+        String identifier = (types != null && types.length > 0) ? types[0] : "curios";
         this.curioTick(new SlotContext(identifier, player, 0, false, true), itemstack);
     }
 

@@ -1,4 +1,4 @@
-package ruiseki.okcurios.common.data;
+package ruiseki.okcurios.common.data.entity;
 
 // TODO: Add DataLoader
 public class CuriosEntityManager {

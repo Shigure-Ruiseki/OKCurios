@@ -69,7 +69,7 @@ import ruiseki.okcurios.common.network.server.SPacketSetIcons;
 import ruiseki.okcurios.common.network.server.sync.SPacketSyncCurios;
 import ruiseki.okcurios.common.network.server.sync.SPacketSyncModifiers;
 import ruiseki.okcurios.common.network.server.sync.SPacketSyncStack;
-import ruiseki.okcurios.compat.BaubleToCurioCapabilityWrapper;
+import ruiseki.okcurios.compat.BaublesWrapper;
 
 public class CuriosEventHandler {
 
@@ -169,7 +169,7 @@ public class CuriosEventHandler {
                 evt.addCapability(CuriosCapability.ID_ITEM, CurioItemCapability.createProvider(itemizedCapability));
             }
         } else if (stack.getItem() instanceof IBauble bauble) {
-            BaubleToCurioCapabilityWrapper baubleWrapper = new BaubleToCurioCapabilityWrapper(stack, bauble);
+            BaublesWrapper baubleWrapper = new BaublesWrapper(stack, bauble);
             evt.addCapability(CuriosCapability.ID_ITEM, CurioItemCapability.createProvider(baubleWrapper));
         }
     }

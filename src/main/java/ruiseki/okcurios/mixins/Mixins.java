@@ -1,20 +1,24 @@
 package ruiseki.okcurios.mixins;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.gtnewhorizon.gtnhmixins.builders.IMixins;
 import com.gtnewhorizon.gtnhmixins.builders.MixinBuilder;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-@RequiredArgsConstructor
 public enum Mixins implements IMixins {
-    ;
 
-    @Getter
+    ADD_API(new MixinBuilder("Add Api").addCommonMixins("MixinCuriosApi")
+        .setPhase(Phase.EARLY));
+
     private final MixinBuilder builder;
 
-    Mixins(Side side, String... mixins) {
-        this.builder = new MixinBuilder().addSidedMixins(side, mixins)
-            .setPhase(Phase.EARLY);
+    Mixins(MixinBuilder builder) {
+        this.builder = builder;
+    }
+
+    @NotNull
+    @Override
+    public MixinBuilder getBuilder() {
+        return this.builder;
     }
 }
